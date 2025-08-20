@@ -199,3 +199,9 @@ xlrd==1.2.0
 XlsxWriter==3.2.2
 zipp==1.0.0
 zope.interface==7.2
+transformers==4.40.0
+accelerate==0.30.0
+bitsandbytes==0.43.0
+sentencepiece==0.2.0
+tokenizers==0.19.0
+psutil==6.1.0

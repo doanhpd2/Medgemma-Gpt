@@ -1,6 +1,29 @@
 {
   "models": [
     {
+      "model_name": "medgemma-4b",
+      "model_alias": "MedGemma 4B",
+      "description": "Google MedGemma 4B 의료 AI 모델",
+      "endpoint": "/medgemma",
+      "in_billing": "0",
+      "out_billing": "0",
+      "capabilities": {
+        "stream": true,
+        "image": false,
+        "inference": true,
+        "search": false,
+        "deep_research": false,
+        "mcp": false
+      },
+      "controls": {
+        "temperature": true,
+        "reason": false,
+        "verbosity": true,
+        "system_message": true
+      },
+      "admin": false
+    },
+    {
       "model_name": "qwen3:8b",
       "model_alias": "Qwen 3 8B",
       "description": "로컬 Qwen 모델",
