@@ -31,7 +31,7 @@ This script will:
 - Open the necessary Hugging Face pages in your browser
 - Guide you through creating a token
 - Help you set the environment variable
-- Test your token to ensure it works
+- Test your token to ensure it works, this is test
 
 **Manual Setup (if preferred):**
 
