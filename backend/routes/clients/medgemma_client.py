@@ -18,6 +18,8 @@ from ..common import (
     ApiSettings
 )
 from logging_util import logger
+from dotenv import load_dotenv
+load_dotenv()
 
 # Global variables for model and tokenizer
 model = None

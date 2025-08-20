@@ -41,7 +41,12 @@ This script will:
 4. **Accept the model terms** at https://huggingface.co/google/medgemma-4b
 5. **Set the environment variable**:
 
-   **Windows:**
+   **Windows (PowerShell):**
+   ```powershell
+   $env:HUGGINGFACE_TOKEN="your_token_here"
+   ```
+
+   **Windows (CMD):**
    ```cmd
    set HUGGINGFACE_TOKEN=your_token_here
    ```

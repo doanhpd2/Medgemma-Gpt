@@ -8,6 +8,10 @@ import os
 import sys
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
+from dotenv import load_dotenv
+
+# Load environment variables from .env if present
+load_dotenv()
 
 def download_medgemma_model():
     """Download MedGemma 4B model and tokenizer"""
@@ -18,14 +22,25 @@ def download_medgemma_model():
     hf_token = os.getenv('HUGGINGFACE_TOKEN')
     if not hf_token:
         print("❌ HUGGINGFACE_TOKEN environment variable not set!")
-        print("\nTo get a Hugging Face access token:")
-        print("1. Go to https://huggingface.co/settings/tokens")
-        print("2. Create a new token with 'read' permissions")
-        print("3. Set the environment variable:")
-        print("   - Windows: set HUGGINGFACE_TOKEN=your_token_here")
-        print("   - Linux/Mac: export HUGGINGFACE_TOKEN=your_token_here")
-        print("   - Or add it to your .env file: HUGGINGFACE_TOKEN=your_token_here")
-        return False
+        # Allow entering token interactively so setup can proceed
+        try:
+            token = input("Enter your Hugging Face token now (leave blank to abort): ").strip()
+        except Exception:
+            token = ""
+        if token:
+            os.environ['HUGGINGFACE_TOKEN'] = token
+            hf_token = token
+            print("✅ Using provided token for this setup run. Consider adding it to your .env file.")
+        else:
+            print("\nTo get a Hugging Face access token:")
+            print("1. Go to https://huggingface.co/settings/tokens")
+            print("2. Create a new token with 'read' permissions")
+            print("3. Set the environment variable:")
+            print("   - PowerShell: $env:HUGGINGFACE_TOKEN=your_token_here")
+            print("   - CMD:        set HUGGINGFACE_TOKEN=your_token_here")
+            print("   - Linux/Mac:  export HUGGINGFACE_TOKEN=your_token_here")
+            print("   - Or add it to your .env file: HUGGINGFACE_TOKEN=your_token_here")
+            return False
     
     try:
         model_name = "google/medgemma-4b"

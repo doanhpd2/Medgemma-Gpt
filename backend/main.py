@@ -9,7 +9,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from routes import auth, realtime, conversations, uploads
-from routes.clients import openai_client, grok_client, responses_client, anthropic_client, google_client, mistral_client, medgemma_client
+from routes.clients import medgemma_client
 from routes.auth import User, get_current_user
 from bs4 import BeautifulSoup
 import base64
@@ -35,12 +35,6 @@ app.include_router(auth.router)
 app.include_router(conversations.router)
 app.include_router(uploads.router)
 app.include_router(realtime.router)
-app.include_router(openai_client.router)
-app.include_router(grok_client.router)
-app.include_router(responses_client.router)
-app.include_router(anthropic_client.router)
-app.include_router(google_client.router)
-app.include_router(mistral_client.router)
 app.include_router(medgemma_client.router)
 
 app.add_middleware(

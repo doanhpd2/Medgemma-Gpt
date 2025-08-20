@@ -45,10 +45,14 @@ def open_hf_links():
 def set_token_windows():
     """Set token on Windows"""
     print("\n🪟 Windows Setup:")
-    print("Run this command in Command Prompt or PowerShell:")
-    print("set HUGGINGFACE_TOKEN=your_token_here")
+    print("PowerShell (current session):")
+    print("  $env:HUGGINGFACE_TOKEN=\"your_token_here\"")
+    print("\nCMD (current session):")
+    print("  set HUGGINGFACE_TOKEN=your_token_here")
+    print("\nPersist for your user (PowerShell):")
+    print("  [Environment]::SetEnvironmentVariable(\"HUGGINGFACE_TOKEN\",\"your_token_here\",\"User\")")
     print("\nOr add to your .env file:")
-    print("HUGGINGFACE_TOKEN=your_token_here")
+    print("  HUGGINGFACE_TOKEN=your_token_here")
 
 def set_token_unix():
     """Set token on Unix-like systems"""
