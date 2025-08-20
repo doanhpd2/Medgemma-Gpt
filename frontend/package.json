@@ -2,6 +2,8 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
+  "proxy": "http://localhost:8000",
   "dependencies": {
     "@testing-library/react": "^16.2.0",
     "axios": "^1.8.1",
@@ -38,7 +40,7 @@
     "web-vitals": "^4.2.4"
   },
   "scripts": {
-    "start": "cross-env PORT=8000 react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
