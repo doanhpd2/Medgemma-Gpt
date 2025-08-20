@@ -19,7 +19,44 @@ This backend has been refactored to include Google's MedGemma 4B model from Hugg
 
 ## Installation
 
-### 1. Install Dependencies
+### 1. Get Hugging Face Access Token
+
+MedGemma 4B requires a Hugging Face access token for download. You can set this up automatically:
+
+```bash
+python setup_hf_token.py
+```
+
+This script will:
+- Open the necessary Hugging Face pages in your browser
+- Guide you through creating a token
+- Help you set the environment variable
+- Test your token to ensure it works
+
+**Manual Setup (if preferred):**
+
+1. **Create a Hugging Face account** at https://huggingface.co/join
+2. **Go to your tokens page** at https://huggingface.co/settings/tokens
+3. **Create a new token** with "read" permissions
+4. **Accept the model terms** at https://huggingface.co/google/medgemma-4b
+5. **Set the environment variable**:
+
+   **Windows:**
+   ```cmd
+   set HUGGINGFACE_TOKEN=your_token_here
+   ```
+
+   **Linux/Mac:**
+   ```bash
+   export HUGGINGFACE_TOKEN=your_token_here
+   ```
+
+   **Or add to .env file:**
+   ```
+   HUGGINGFACE_TOKEN=your_token_here
+   ```
+
+### 2. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -32,7 +69,7 @@ The requirements.txt file has been updated to include:
 - `sentencepiece==0.2.0` - Tokenization
 - `tokenizers==0.19.0` - Fast tokenization
 
-### 2. Download MedGemma Model
+### 3. Download MedGemma Model
 
 Run the setup script to download the model:
 
@@ -156,13 +193,28 @@ If you encounter memory errors:
 ### Download Issues
 If model download fails:
 
-1. **Check internet connection**
-2. **Ensure sufficient disk space** (8GB+)
-3. **Try downloading manually**:
+1. **Check Hugging Face access token**:
+   - Ensure `HUGGINGFACE_TOKEN` environment variable is set
+   - Verify the token has "read" permissions
+   - Check if the token is valid and not expired
+
+2. **Accept model terms**:
+   - Visit https://huggingface.co/google/medgemma-4b
+   - Click "Accept" to agree to the model terms
+   - This is required before downloading
+
+3. **Check internet connection**
+
+4. **Ensure sufficient disk space** (8GB+)
+
+5. **Try downloading manually**:
    ```python
+   import os
    from transformers import AutoTokenizer, AutoModelForCausalLM
-   tokenizer = AutoTokenizer.from_pretrained("google/medgemma-4b", trust_remote_code=True)
-   model = AutoModelForCausalLM.from_pretrained("google/medgemma-4b", trust_remote_code=True)
+   
+   hf_token = os.getenv('HUGGINGFACE_TOKEN')
+   tokenizer = AutoTokenizer.from_pretrained("google/medgemma-4b", trust_remote_code=True, token=hf_token)
+   model = AutoModelForCausalLM.from_pretrained("google/medgemma-4b", trust_remote_code=True, token=hf_token)
    ```
 
 ### Performance Optimization

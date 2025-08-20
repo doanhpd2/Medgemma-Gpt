@@ -37,8 +37,21 @@ def load_medgemma_model():
         # MedGemma 4B model from Hugging Face
         model_name = "google/medgemma-4b"
         
-        # Load tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        # Get Hugging Face access token from environment
+        hf_token = os.getenv('HUGGINGFACE_TOKEN')
+        if not hf_token:
+            logger.error("HUGGINGFACE_TOKEN environment variable not set")
+            raise HTTPException(
+                status_code=500, 
+                detail="Hugging Face access token not configured. Please set HUGGINGFACE_TOKEN environment variable."
+            )
+        
+        # Load tokenizer with access token
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_name, 
+            trust_remote_code=True,
+            token=hf_token
+        )
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
         
@@ -48,7 +61,8 @@ def load_medgemma_model():
             torch_dtype=torch.float16,
             device_map="auto",
             trust_remote_code=True,
-            load_in_8bit=True  # Use 8-bit quantization to reduce memory usage
+            load_in_8bit=True,  # Use 8-bit quantization to reduce memory usage
+            token=hf_token
         )
         
         model_loaded = True
@@ -56,7 +70,18 @@ def load_medgemma_model():
         
     except Exception as e:
         logger.error(f"Error loading MedGemma model: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to load MedGemma model: {str(e)}")
+        if "401" in str(e) or "unauthorized" in str(e).lower():
+            raise HTTPException(
+                status_code=401, 
+                detail="Invalid Hugging Face access token. Please check your HUGGINGFACE_TOKEN environment variable."
+            )
+        elif "404" in str(e) or "not found" in str(e).lower():
+            raise HTTPException(
+                status_code=404, 
+                detail="MedGemma model not found. Please check if you have access to this model on Hugging Face."
+            )
+        else:
+            raise HTTPException(status_code=500, detail=f"Failed to load MedGemma model: {str(e)}")
 
 def normalize_user_content(part):
     """Normalize user content for MedGemma input"""

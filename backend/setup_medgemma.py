@@ -14,11 +14,28 @@ def download_medgemma_model():
     print("Starting MedGemma 4B model download...")
     print("This may take a while depending on your internet connection.")
     
+    # Check for Hugging Face token
+    hf_token = os.getenv('HUGGINGFACE_TOKEN')
+    if not hf_token:
+        print("❌ HUGGINGFACE_TOKEN environment variable not set!")
+        print("\nTo get a Hugging Face access token:")
+        print("1. Go to https://huggingface.co/settings/tokens")
+        print("2. Create a new token with 'read' permissions")
+        print("3. Set the environment variable:")
+        print("   - Windows: set HUGGINGFACE_TOKEN=your_token_here")
+        print("   - Linux/Mac: export HUGGINGFACE_TOKEN=your_token_here")
+        print("   - Or add it to your .env file: HUGGINGFACE_TOKEN=your_token_here")
+        return False
+    
     try:
         model_name = "google/medgemma-4b"
         
         print(f"Downloading tokenizer from {model_name}...")
-        tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_name, 
+            trust_remote_code=True,
+            token=hf_token
+        )
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
         
@@ -28,7 +45,8 @@ def download_medgemma_model():
             torch_dtype=torch.float16,
             device_map="auto",
             trust_remote_code=True,
-            load_in_8bit=True
+            load_in_8bit=True,
+            token=hf_token
         )
         
         print("✅ MedGemma 4B model downloaded successfully!")
@@ -55,12 +73,24 @@ def download_medgemma_model():
         
     except Exception as e:
         print(f"❌ Error downloading model: {str(e)}")
-        print("\nTroubleshooting tips:")
-        print("1. Make sure you have enough disk space (at least 8GB)")
-        print("2. Check your internet connection")
-        print("3. Make sure you have the required dependencies installed:")
-        print("   pip install transformers accelerate bitsandbytes sentencepiece tokenizers")
-        print("4. If you're on Windows, you might need to install Visual Studio Build Tools")
+        
+        if "401" in str(e) or "unauthorized" in str(e).lower():
+            print("\n🔐 Authentication Error:")
+            print("Your Hugging Face access token is invalid or expired.")
+            print("Please check your HUGGINGFACE_TOKEN environment variable.")
+        elif "404" in str(e) or "not found" in str(e).lower():
+            print("\n🔍 Model Access Error:")
+            print("You don't have access to the MedGemma 4B model.")
+            print("Please check if you have accepted the model terms on Hugging Face:")
+            print("https://huggingface.co/google/medgemma-4b")
+        else:
+            print("\nTroubleshooting tips:")
+            print("1. Make sure you have enough disk space (at least 8GB)")
+            print("2. Check your internet connection")
+            print("3. Make sure you have the required dependencies installed:")
+            print("   pip install transformers accelerate bitsandbytes sentencepiece tokenizers")
+            print("4. If you're on Windows, you might need to install Visual Studio Build Tools")
+        
         return False
     
     return True
