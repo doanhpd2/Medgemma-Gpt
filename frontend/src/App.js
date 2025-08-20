@@ -49,8 +49,9 @@ function App() {
 }
 
 function AppContent() {
-  const [isLoggedIn, setIsLoggedIn] = useState(null);
-  const [userInfo, setUserInfo] = useState(null);
+  // Force login bypass for development
+  const [isLoggedIn] = useState(true); // <-- Always logged in
+  const [userInfo, setUserInfo] = useState({ name: "Dev User" }); // Optional: mock user info
   const [isResponsive, setIsResponsive] = useState(window.innerWidth <= 768);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [userSidebarOpen, setUserSidebarOpen] = useState(null);
@@ -82,33 +83,12 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    async function checkLoginStatus() {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_FASTAPI_URL}/auth/status`,
-          { withCredentials: true }
-        );
-        setIsLoggedIn(response.data.logged_in);
-        if (response.data.logged_in) {
-          fetchConversations();
-          try {
-            const userResponse = await axios.get(
-              `${process.env.REACT_APP_FASTAPI_URL}/auth/user`,
-              { withCredentials: true }
-            );
-            setUserInfo(userResponse.data);
-          } catch (error) {
-            console.error("Failed to fetch user info.", error);
-          }
-        }
-      } catch (error) {
-        setIsLoggedIn(false);
-        setUserInfo(null);
-      }
+    if (isLoggedIn) {
+      fetchConversations();
+      // Mock user info for development
+      setUserInfo({ name: "Dev User" });
     }
-    checkLoginStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isLoggedIn, fetchConversations]);
 
   useEffect(() => {
     if (isResponsive) {

@@ -17,7 +17,7 @@ function Login() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('expired') === 'true') {
-      setToastMessage("다시 로그인해 주세요.");
+      setToastMessage("Please log in again.");
       setShowToast(true);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -30,13 +30,13 @@ function Login() {
 
   async function handleLogin() {
     if (!email || !password) {
-      setToastMessage("모든 필드를 입력해 주세요.");
+      setToastMessage("Please fill in all fields.");
       setShowToast(true);
       return;
     }
 
     if (!validateEmail(email)) {
-      setToastMessage("올바른 이메일 형식을 입력해 주세요.");
+      setToastMessage("Please enter a valid email address.");
       setShowToast(true);
       return;
     }
@@ -52,8 +52,8 @@ function Login() {
       const detail = error.response?.data?.detail;
       setToastMessage(
         Array.isArray(detail)
-          ? "잘못된 입력입니다."
-          : detail || "알 수 없는 오류가 발생했습니다."
+          ? "Invalid input."
+          : detail || "An unknown error has occurred."
       );
       setShowToast(true);
     }
@@ -76,7 +76,7 @@ function Login() {
         <input
           className="id field"
           type="email"
-          placeholder="이메일"
+          placeholder="email"
           value={email}
           onChange={(e) => {
             const value = e.target.value;
@@ -89,7 +89,7 @@ function Login() {
         <input
           className="password field"
           type="password"
-          placeholder="비밀번호"
+          placeholder="password"
           value={password}
           onChange={(e) => {
             const value = e.target.value;
@@ -104,7 +104,7 @@ function Login() {
         </button>
       </form>
       <div className="footer">
-        <p>계정이 없으신가요?</p>
+        <p>Don't have an account?</p>
         <button className="route" onClick={() => navigate("/register")}>
           가입하기
         </button>

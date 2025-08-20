@@ -478,7 +478,7 @@ function Sidebar({
             </div>
           </div>
           <div className="header-right">
-            <Tooltip content="사이드바 닫기" position="bottom" isTouch={isTouch}>
+            <Tooltip content="Đóng thanh bên" position="bottom" isTouch={isTouch}>
               <div className="header-icon">
                 <RiMenuLine onClick={toggleSidebar} />
               </div>
@@ -489,19 +489,19 @@ function Sidebar({
         <div className="newtask-container">
           <div className="new-task search" onClick={toggleSearch}>
             <LuSearch />
-            검색
+            Tìm kiếm
           </div>
           <div className="new-task" onClick={handleNewConversation}>
             <LuSquarePen />
-            새 대화
+            Cuộc trò chuyện mới
           </div>
           <div className="new-task" onClick={handleRealtimeConversation}>
             <LuAudioLines />
-            실시간 대화
+            Trò chuyện thời gian thực
           </div>
           <div className="new-task" onClick={handleImageGeneration}>
             <LuImage />
-            이미지 생성
+            Tạo hình ảnh
           </div>
         </div>
 
@@ -517,7 +517,7 @@ function Sidebar({
           ) : (
             <>
               <div className="conversation-header">
-                대화 기록
+                Lịch sử trò chuyện
               </div>
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -554,7 +554,7 @@ function Sidebar({
                     ))
                 ) : (
                   <div className="no-result">
-                    {conversations.length === 0 ? "대화 내역이 없습니다." : "검색 결과가 없습니다."}
+                    {conversations.length === 0 ? "Không có lịch sử trò chuyện." : "Không có kết quả tìm kiếm."}
                   </div>
                 )}
               </motion.div>
@@ -578,17 +578,17 @@ function Sidebar({
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
                 <div className="user-billing">
-                  {userInfo?.billing?.toFixed(2)}$ 사용됨
+                  {userInfo?.billing?.toFixed(2)}$ đã sử dụng
                 </div>
                 <div onClick={handleDeleteAll} className="dropdown-button">
-                  전체 대화 삭제
+                  Xóa tất cả trò chuyện
                 </div>
                 <div
                   onClick={handleLogoutClick}
                   className="dropdown-button"
                   style={{ color: "red" }}
                 >
-                  로그아웃
+                  Đăng xuất
                 </div>
               </motion.div>
             )}
@@ -622,12 +622,12 @@ function Sidebar({
               {selectedConversationId && (
                 <>
                   {conversations.find(c => c.conversation_id === selectedConversationId)?.starred ? (
-                    <li onClick={() => handleCustomAction("star")}>즐겨찾기 해제</li>
+                    <li onClick={() => handleCustomAction("star")}>Bỏ đánh dấu yêu thích</li>
                   ) : (
-                    <li onClick={() => handleCustomAction("star")}>즐겨찾기</li>
+                    <li onClick={() => handleCustomAction("star")}>Đánh dấu yêu thích</li>
                   )}
-                  <li onClick={() => handleCustomAction("rename")}>이름 편집</li>
-                  <li onClick={() => handleCustomAction("delete")}>삭제</li>
+                  <li onClick={() => handleCustomAction("rename")}>Chỉnh sửa tên</li>
+                  <li onClick={() => handleCustomAction("delete")}>Xóa</li>
                 </>
               )}
             </ul>

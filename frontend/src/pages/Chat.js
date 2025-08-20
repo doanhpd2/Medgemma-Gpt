@@ -115,7 +115,7 @@ function Chat({ isTouch, chatMessageRef }) {
           { withCredentials: true }
         )
         .catch((err) => {
-          setToastMessage("메세지 삭제 중 오류가 발생했습니다.");
+          setToastMessage("Đã xảy ra lỗi khi xóa tin nhắn.");
           setShowToast(true);
         });
     },
@@ -125,7 +125,7 @@ function Chat({ isTouch, chatMessageRef }) {
   const sendMessage = useCallback(
     async (message, files = uploadedFiles) => {
       if (!message.trim()) {
-        setToastMessage("내용을 입력해주세요.");
+        setToastMessage("Vui lòng nhập nội dung.");
         setShowToast(true);
         return;
       }
@@ -303,7 +303,7 @@ function Chat({ isTouch, chatMessageRef }) {
               try {
                 const data = JSON.parse(jsonData);
                 if (data.error) {
-                  setErrorMessage("서버 오류가 발생했습니다: " + data.error);
+                  setErrorMessage("Đã xảy ra lỗi máy chủ: " + data.error);
                   reader.cancel();
                   return;
                 } else if (data.content) {
@@ -311,7 +311,7 @@ function Chat({ isTouch, chatMessageRef }) {
                   updateAssistantMessage(assistantText, false);
                 }
               } catch (err) {
-                setErrorMessage("스트리밍 중 오류가 발생했습니다: " + err.message);
+                setErrorMessage("Đã xảy ra lỗi khi truyền phát: " + err.message);
                 reader.cancel();
                 return;
               }
@@ -322,7 +322,7 @@ function Chat({ isTouch, chatMessageRef }) {
         updateAssistantMessage(assistantText, true);
       } catch (err) {
         if (err.name === "AbortError") return;
-        setErrorMessage("메시지 전송 중 오류가 발생했습니다: " + err.message);
+        setErrorMessage("Đã xảy ra lỗi khi gửi tin nhắn: " + err.message);
       } finally {
         setIsThinking(prev => prev ? false : prev);
         setIsLoading(false);
@@ -365,7 +365,7 @@ function Chat({ isTouch, chatMessageRef }) {
         
         sendMessage(textContent, nonTextContent);
       } catch (err) {
-        setToastMessage("메세지 처리 중 오류가 발생했습니다.");
+        setToastMessage("Đã xảy ra lỗi khi xử lý tin nhắn.");
         setShowToast(true);
       }
     },
@@ -481,10 +481,10 @@ function Chat({ isTouch, chatMessageRef }) {
       } catch (err) {
         if (err.response && err.response.status === 404) {
           fetchConversations();
-          navigate("/", { state: { errorModal: "대화를 찾을 수 없습니다." } });
+          navigate("/", { state: { errorModal: "Không tìm thấy cuộc trò chuyện." } });
         } else {
           fetchConversations();
-          navigate("/", { state: { errorModal: "대화를 불러오는 중 오류가 발생했습니다." } });
+          navigate("/", { state: { errorModal: "Đã xảy ra lỗi khi tải cuộc trò chuyện." } });
         }
       } finally {
         if (!isInitialized) setIsInitialized(true);
@@ -611,7 +611,7 @@ function Chat({ isTouch, chatMessageRef }) {
         <AnimatePresence>
           {confirmModal && (
             <Modal
-              message="정말 메세지를 삭제하시겠습니까?"
+              message="Bạn có chắc chắn muốn xóa tin nhắn không?"
               onConfirm={() => {
                 deleteMessages(deleteIndex);
                 setdeleteIndex(null);
@@ -632,7 +632,7 @@ function Chat({ isTouch, chatMessageRef }) {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 1, ease: "easeOut" }}
           >
-            생각하는 중...
+            Đang suy nghĩ...
           </motion.div>
         )}
         <div ref={messagesEndRef} />
@@ -640,7 +640,7 @@ function Chat({ isTouch, chatMessageRef }) {
 
       <InputContainer
         isTouch={isTouch}
-        placeholder="답장 입력하기"
+        placeholder="Nhập trả lời"
         inputText={inputText}
         setInputText={setInputText}
         isLoading={isLoading}
@@ -664,7 +664,7 @@ function Chat({ isTouch, chatMessageRef }) {
           >
             <div className="drag-container">
               <IoImageOutline style={{ fontSize: "40px" }} />
-              <div className="drag-text">여기에 파일을 추가하세요</div>
+              <div className="drag-text">Thêm tệp tại đây</div>
             </div>
           </motion.div>
         )}

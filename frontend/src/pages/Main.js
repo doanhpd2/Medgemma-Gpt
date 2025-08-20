@@ -124,7 +124,7 @@ function Main({ isTouch }) {
         
         const newConversation = {
           conversation_id,
-          alias: "새 대화",
+          alias: "Cuộc trò chuyện mới",
           starred: false,
           starred_at: null,
           created_at: created_at,
@@ -140,7 +140,7 @@ function Main({ isTouch }) {
           replace: false,
         });
       } catch (error) {
-        setToastMessage("새 대화를 시작하는 데 실패했습니다.");
+        setToastMessage("Không thể bắt đầu cuộc trò chuyện mới.");
         setShowToast(true);
         setIsLoading(false);
       } finally {
@@ -210,13 +210,13 @@ function Main({ isTouch }) {
           animate={{ y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          무엇을 도와드릴까요?
+          Tôi có thể giúp gì cho bạn?
         </motion.div>
       </div>
 
       <InputContainer
         isTouch={isTouch}
-        placeholder="내용 입력하기"
+        placeholder="Nhập nội dung"
         extraClassName="main-input-container"
         inputText={inputText}
         setInputText={setInputText}
@@ -241,7 +241,7 @@ function Main({ isTouch }) {
           >
             <div className="drag-container">
               <IoImageOutline style={{ fontSize: "40px" }} />
-              <div className="drag-text">여기에 파일을 추가하세요</div>
+              <div className="drag-text">Thêm tệp tại đây</div>
             </div>
           </motion.div>
         )}

@@ -1,99 +1,99 @@
 # DevoChat
 
-*[English](README.md) | 한국어*
+*[English](README.md) | Tiếng Việt*
 
-### 통합 인공지능 대화 플랫폼
-DevoChat은 다양한 AI 모델과 MCP (Model Context Protocol) 서버를 하나의 인터페이스에서 사용할 수 있는 웹 애플리케이션입니다. [여기](https://devochat.com)에서 라이브 데모를 확인하세요.
+### Nền tảng hội thoại AI tích hợp
+DevoChat là ứng dụng web cho phép sử dụng nhiều mô hình AI và máy chủ MCP (Model Context Protocol) trên một giao diện duy nhất. Xem bản demo trực tiếp [tại đây](https://devochat.com).
 
-## 주요 기능
+## Tính năng chính
 
-- **통합 대화 시스템**
-  - MongoDB 기반의 통합 스키마를 사용하여, 대화 중에도 컨텍스트 손실 없이 AI 모델을 자유롭게 전환할 수 있습니다.
-  - 각 AI 제공업체별 API 요구사항에 맞게 데이터를 정규화하는 클라이언트 레이어를 제공합니다.
-  - 이미지, PDF, 문서 등 다양한 미디어 파일을 통합 관리하는 환경을 제공합니다.
+- **Hệ thống hội thoại tích hợp**
+  - Sử dụng schema tích hợp dựa trên MongoDB, cho phép chuyển đổi mô hình AI tự do mà không mất ngữ cảnh trong quá trình hội thoại.
+  - Cung cấp lớp client chuẩn hóa dữ liệu theo yêu cầu API của từng nhà cung cấp AI.
+  - Quản lý tập trung các loại file media như hình ảnh, PDF, tài liệu...
 
-- **고급 대화 기능**
-  - 온도, 추론 강도, 답변 길이, 시스템 프롬프트 수정 등 세부 파라미터 제어를 제공합니다.
-  - 마크다운, LaTeX 수식, 코드 블럭 렌더링을 제공합니다.
-  - 스트리밍 응답을 지원하며, 비스트리밍 모델의 경우 전체 응답을 청크 단위로 전송하여 스트리밍을 시뮬레이션합니다.
-  - 실시간/저지연 STS (Speech-To-Speech) 대화를 위한 RealTime API를 지원합니다.
+- **Tính năng hội thoại nâng cao**
+  - Cho phép điều chỉnh chi tiết các tham số như nhiệt độ, độ suy luận, độ dài câu trả lời, hệ thống prompt...
+  - Hỗ trợ hiển thị Markdown, công thức LaTeX, khối mã nguồn.
+  - Hỗ trợ phản hồi dạng streaming, với mô hình không streaming sẽ gửi từng phần để mô phỏng streaming.
+  - Hỗ trợ RealTime API cho hội thoại STS (Speech-To-Speech) thời gian thực/độ trễ thấp.
 
-- **모델 전환 아키텍처**
-  - JSON 설정만으로 코드 수정 없이 다양한 AI 모델을 시스템에 즉시 추가할 수 있습니다.
-  - 하이브리드 모델의 경우 추론, 검색, 딥 리서치 등 각 모델의 특화 기능을 필요에 따라 토글할 수 있습니다.
-  - 제공업체가 기능을 여러 모델로 분할한 경우(예: Qwen3-235B-A22B-Instruct-2507, Qwen3-235B-A22B-Thinking-2507), "switch" 변형으로 연결하여 단일 하이브리드 모델처럼 작동하도록 구현했습니다.
+- **Kiến trúc chuyển đổi mô hình**
+  - Thêm mô hình AI mới vào hệ thống chỉ với cấu hình JSON, không cần sửa mã nguồn.
+  - Với mô hình hybrid, có thể bật/tắt các chức năng đặc biệt như suy luận, tìm kiếm, nghiên cứu sâu...
+  - Nếu nhà cung cấp chia chức năng thành nhiều mô hình (VD: Qwen3-235B-A22B-Instruct-2507, Qwen3-235B-A22B-Thinking-2507), có thể kết nối dạng "switch" để hoạt động như một mô hình hybrid duy nhất.
 
-- **웹 기반 MCP 클라이언트**
-  - 웹 브라우저에서 모든 유형의 MCP 서버(SSE, 로컬)에 직접 연결할 수 있습니다.
-  - [secure-mcp-proxy](https://github.com/gws8820/secure-mcp-proxy) 패키지를 사용하면 로컬 MCP 서버를 언제 어디서나 웹에서 간단히 접근할 수 있습니다.
-  - 도구 호출과 실행 과정을 실시간으로 시각화하여 직관적인 사용자 경험을 제공합니다.
+- **MCP client trên nền web**
+  - Kết nối trực tiếp mọi loại máy chủ MCP (SSE, local) từ trình duyệt.
+  - Sử dụng gói [secure-mcp-proxy](https://github.com/gws8820/secure-mcp-proxy) để truy cập máy chủ MCP local từ web mọi lúc mọi nơi.
+  - Hiển thị trực quan quá trình gọi và thực thi công cụ theo thời gian thực.
 
-## 스크린샷
+## Ảnh màn hình
 
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="samples/main.png" alt="메인 화면">
+      <img src="samples/main.png" alt="Màn hình chính">
       <br>
-      <em>메인 화면</em>
+      <em>Màn hình chính</em>
     </td>
     <td align="center" width="50%">
-      <img src="samples/model-select.png" alt="모델 선택 화면">
+      <img src="samples/model-select.png" alt="Chọn mô hình">
       <br>
-      <em>모델 선택 화면</em>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="50%">
-      <img src="samples/code.png" alt="코드 블록">
-      <br>
-      <em>코드 하이라이팅</em>
-    </td>
-    <td align="center" width="50%">
-      <img src="samples/latex.png" alt="LaTeX 수식">
-      <br>
-      <em>수식 렌더링</em>
+      <em>Chọn mô hình</em>
     </td>
   </tr>
   <tr>
     <td align="center" width="50%">
-      <img src="samples/image.png" alt="이미지 업로드">
+      <img src="samples/code.png" alt="Khối mã nguồn">
       <br>
-      <em>이미지 업로드</em>
+      <em>Highlight mã nguồn</em>
     </td>
     <td align="center" width="50%">
-      <img src="samples/docs.png" alt="파일 업로드">
+      <img src="samples/latex.png" alt="Công thức LaTeX">
       <br>
-      <em>파일 업로드</em>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="50%">
-      <img src="samples/url.png" alt="URL 링크 처리">
-      <br>
-      <em>URL 처리</em>
-    </td>
-    <td align="center" width="50%">
-      <img src="samples/mcp-select.png" alt="MCP 서버 선택">
-      <br>
-      <em>MCP 서버 선택</em>
+      <em>Hiển thị công thức</em>
     </td>
   </tr>
   <tr>
     <td align="center" width="50%">
-      <img src="samples/mcp-use.png" alt="MCP 서버 사용">
+      <img src="samples/image.png" alt="Tải lên hình ảnh">
       <br>
-      <em>MCP 서버 사용</em>
+      <em>Tải lên hình ảnh</em>
     </td>
     <td align="center" width="50%">
-      <img src="samples/realtime.png" alt="실시간 대화">
+      <img src="samples/docs.png" alt="Tải lên file">
       <br>
-      <em>실시간 대화</em>
+      <em>Tải lên file</em>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="samples/url.png" alt="Xử lý liên kết URL">
+      <br>
+      <em>Xử lý URL</em>
+    </td>
+    <td align="center" width="50%">
+      <img src="samples/mcp-select.png" alt="Chọn máy chủ MCP">
+      <br>
+      <em>Chọn máy chủ MCP</em>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="samples/mcp-use.png" alt="Sử dụng máy chủ MCP">
+      <br>
+      <em>Sử dụng máy chủ MCP</em>
+    </td>
+    <td align="center" width="50%">
+      <img src="samples/realtime.png" alt="Hội thoại thời gian thực">
+      <br>
+      <em>Hội thoại thời gian thực</em>
     </td>
   </tr>
 </table>
 
-## 기술 스택
+## Công nghệ sử dụng
 
 ![React](https://img.shields.io/badge/React-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 ![JavaScript](https://img.shields.io/badge/JavaScript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
@@ -102,33 +102,33 @@ DevoChat은 다양한 AI 모델과 MCP (Model Context Protocol) 서버를 하나
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
 ![Textract](https://img.shields.io/badge/Textract-FF6F61?style=for-the-badge)
 
-## 설치 및 실행
+## Cài đặt & chạy
 
-### 프론트엔드
+### Frontend
 
-#### 환경변수 설정
+#### Thiết lập biến môi trường
 ```
 WDS_SOCKET_PORT=0
 REACT_APP_FASTAPI_URL=http://localhost:8000
 ```
 
-#### 패키지 설치 및 시작
+#### Cài đặt package & khởi động
 ```bash
 $ cd frontend
 $ npm install
 $ npm start
 ```
 
-#### 빌드 및 배포
+#### Build & triển khai
 ```bash
 $ cd frontend
 $ npm run build
 $ npx serve -s build
 ```
 
-### 백엔드
+### Backend
 
-#### 파이썬 가상환경 설정
+#### Tạo môi trường ảo Python
 ```bash
 $ cd backend
 $ python -m venv .venv
@@ -136,14 +136,14 @@ $ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 $ pip install -r requirements.txt
 ```
 
-#### 환경변수 설정
+#### Thiết lập biến môi trường
 ```
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/chat_db
 PRODUCTION_URL=https://your-production-domain.com
 DEVELOPMENT_URL=http://localhost:3000
 AUTH_KEY=your_auth_secret_key
 
-# API 키 설정
+# Thiết lập API key
 OPENAI_API_KEY=...
 ANTHROPIC_API_KEY=...
 GEMINI_API_KEY=...
@@ -152,16 +152,16 @@ HUGGINGFACE_API_KEY=...
 XAI_API_KEY=...
 ```
 
-#### FastAPI 서버 실행
+#### Chạy server FastAPI
 ```bash
 $ uvicorn main:app --host=0.0.0.0 --port=8000 --reload
 ```
 
-## 사용법
+## Hướng dẫn sử dụng
 
-### models.json 설정
+### Thiết lập models.json
 
-`models.json` 파일을 통해 애플리케이션에서 사용 가능한 AI 모델들과 그 속성을 정의합니다:
+File `models.json` dùng để định nghĩa các mô hình AI và thuộc tính của chúng trong ứng dụng:
 
 ```json
 {
@@ -169,7 +169,7 @@ $ uvicorn main:app --host=0.0.0.0 --port=8000 --reload
       {
         "model_name": "claude-sonnet-4-20250514",
         "model_alias": "Claude 4 Sonnet",
-        "description": "고성능 Claude 모델",
+        "description": "Mô hình Claude hiệu năng cao",
         "endpoint": "/claude",
         "in_billing": "3",
         "out_billing": "15",
@@ -191,7 +191,7 @@ $ uvicorn main:app --host=0.0.0.0 --port=8000 --reload
       {
         "model_name": "grok-3",
         "model_alias": "Grok 3",
-        "description": "표준 Grok 모델",
+        "description": "Mô hình Grok tiêu chuẩn",
         "endpoint": "/grok",
         "in_billing": "3",
         "out_billing": "15",
@@ -213,7 +213,7 @@ $ uvicorn main:app --host=0.0.0.0 --port=8000 --reload
       {
         "model_name": "o3",
         "model_alias": "OpenAI o3",
-        "description": "고성능 추론 GPT 모델",
+        "description": "Mô hình GPT suy luận hiệu năng cao",
         "endpoint": "/gpt",
         "in_billing": "2",
         "out_billing": "8",
@@ -240,52 +240,52 @@ $ uvicorn main:app --host=0.0.0.0 --port=8000 --reload
 }
 ```
 
-### 파라미터 설명
+### Giải thích tham số
 
-| 파라미터 | 설명 |
+| Tham số | Giải thích |
 |---------|------|
-| `model_name` | API 호출 시 사용되는 모델의 실제 식별자입니다. |
-| `model_alias` | UI에 표시되는 모델의 사용자 친화적인 이름입니다. |
-| `description` | 모델에 대한 간략한 설명으로, 선택 시 참고할 수 있습니다. |
-| `endpoint` | 백엔드에서 해당 모델 요청을 처리할 API 경로입니다. (예: `/gpt`, `/claude`, `/gemini`) |
-| `in_billing` | 입력 토큰(프롬프트)에 대한 청구 비용입니다. 단위는 백만 토큰당 USD입니다. |
-| `out_billing` | 출력 토큰(응답)에 대한 청구 비용입니다. 단위는 백만 토큰당 USD입니다. |
-| `variants` | `"switch"` 타입일 때 전환할 모델을 정의합니다. |
-| `capabilities` | 모델이 지원하는 기능들을 정의합니다. |
-| `capabilities.stream` | 스트리밍 응답 지원 여부입니다. |
-| `capabilities.image` | 이미지 처리 기능 지원 여부입니다. |
-| `capabilities.inference` | 추론 지원 여부입니다. 가능한 값: `true`, `false`, `"toggle"`, `"switch"` |
-| `capabilities.search` | 웹 검색 지원 여부입니다. 가능한 값: `true`, `false`, `"toggle"`, `"switch"` |
-| `capabilities.deep_research` | Deep Research 지원 여부입니다. 가능한 값: `true`, `false`, `"toggle"`, `"switch"` |
-| `controls` | 모델이 지원하는 사용자 제어 옵션들을 정의합니다. |
-| `controls.temperature` | Temperature 조절 가능 여부입니다. 가능한 값: `true`, `false`, `"conditional"` |
-| `controls.reason` | Reasoning Effect 조절 가능 여부입니다. 가능한 값: `true`, `false` |
-| `controls.verbosity` | 답변 길이(verbosity) 조절 가능 여부입니다. 가능한 값: `true`, `false` |
-| `controls.system_message` | 시스템 메시지 설정 가능 여부입니다. 가능한 값: `true`, `false` |
-| `admin` | `true`인 경우, 관리자만 해당 모델을 선택/사용할 수 있습니다. |
+| `model_name` | Định danh thực tế của mô hình khi gọi API. |
+| `model_alias` | Tên thân thiện hiển thị trên UI. |
+| `description` | Mô tả ngắn về mô hình, dùng để tham khảo khi chọn. |
+| `endpoint` | Đường dẫn API xử lý yêu cầu mô hình ở backend (VD: `/gpt`, `/claude`, `/gemini`). |
+| `in_billing` | Chi phí token đầu vào (prompt), đơn vị USD/triệu token. |
+| `out_billing` | Chi phí token đầu ra (response), đơn vị USD/triệu token. |
+| `variants` | Định nghĩa mô hình chuyển đổi khi kiểu `"switch"`. |
+| `capabilities` | Định nghĩa các chức năng mà mô hình hỗ trợ. |
+| `capabilities.stream` | Hỗ trợ phản hồi dạng streaming. |
+| `capabilities.image` | Hỗ trợ xử lý hình ảnh. |
+| `capabilities.inference` | Hỗ trợ suy luận. Giá trị: `true`, `false`, `"toggle"`, `"switch"` |
+| `capabilities.search` | Hỗ trợ tìm kiếm web. Giá trị: `true`, `false`, `"toggle"`, `"switch"` |
+| `capabilities.deep_research` | Hỗ trợ nghiên cứu sâu. Giá trị: `true`, `false`, `"toggle"`, `"switch"` |
+| `controls` | Định nghĩa các tùy chọn điều khiển người dùng. |
+| `controls.temperature` | Có thể điều chỉnh nhiệt độ. Giá trị: `true`, `false`, `"conditional"` |
+| `controls.reason` | Có thể điều chỉnh hiệu ứng suy luận. Giá trị: `true`, `false` |
+| `controls.verbosity` | Có thể điều chỉnh độ dài câu trả lời. Giá trị: `true`, `false` |
+| `controls.system_message` | Có thể thiết lập hệ thống message. Giá trị: `true`, `false` |
+| `admin` | Nếu là `true`, chỉ admin mới được chọn/sử dụng mô hình này. |
 
-### 값 설명
+### Giải thích giá trị
 
 #### true
-해당 기능이 항상 활성화되어 있습니다.
+Chức năng luôn được bật.
 
 #### false  
-해당 기능이 지원되지 않습니다.
+Chức năng không được hỗ trợ.
 
 #### toggle
-하이브리드 모델일 때, 사용자 필요에 따라 해당 기능을 켜거나 끌 수 있습니다.
+Với mô hình hybrid, người dùng có thể bật/tắt chức năng này.
 
 #### switch
-사용자가 해당 기능을 토글할 때 다른 개별 모델로 전환됩니다. `variants` 객체에 정의된 모델로 동적 전환이 이루어집니다.
+Khi người dùng bật chức năng này, sẽ chuyển sang mô hình khác được định nghĩa trong `variants`.
 
 #### conditional  
-표준 모드에서는 사용할 수 있으나, 추론 모드에서는 사용할 수 없습니다.
+Chỉ dùng được ở chế độ tiêu chuẩn, không dùng được ở chế độ suy luận.
 
-### 모델 전환 시스템 (Variants)
+### Hệ thống chuyển đổi mô hình (Variants)
 
-`variants` 객체를 통해 모델의 다양한 변형을 정의할 수 있습니다.
+Định nghĩa các biến thể của mô hình qua đối tượng `variants`.
 
-#### 예시
+#### Ví dụ
 ```json
 {
   "model_name": "sonar",
@@ -309,10 +309,10 @@ $ uvicorn main:app --host=0.0.0.0 --port=8000 --reload
 }
 ```
 
-## MCP 서버 설정
+## Thiết lập máy chủ MCP
 
-DevoChat은 웹 기반 MCP(Model Context Protocol) 클라이언트입니다.
-`mcp_servers.json` 파일에서 연결할 외부 서버들을 정의할 수 있습니다.
+DevoChat là MCP client trên nền web.
+Định nghĩa các máy chủ bên ngoài trong file `mcp_servers.json`.
 
 ### mcp_servers.json
 
@@ -321,13 +321,13 @@ DevoChat은 웹 기반 MCP(Model Context Protocol) 클라이언트입니다.
   "server-id": {
     "url": "https://example.com/mcp/endpoint",
     "authorization_token": "your_authorization_token", 
-    "name": "Server_Display_Name",
+    "name": "Tên hiển thị máy chủ",
     "admin": false
   }
 }
 ```
 
-### 추천 MCP 서버
+### Máy chủ MCP đề xuất
 
 - **[github](https://github.com/modelcontextprotocol/servers/tree/main/src/github)**
 - **[spotify](https://github.com/varunneal/spotify-mcp)** 
@@ -337,23 +337,23 @@ DevoChat은 웹 기반 MCP(Model Context Protocol) 클라이언트입니다.
 - **[desktop-commander](https://github.com/wonderwhy-er/DesktopCommanderMCP)**
 - ...
 
-### 로컬 MCP 서버 연동
+### Kết nối máy chủ MCP local
 
-로컬 MCP 서버를 연결하려면 [secure-mcp-proxy](https://github.com/gws8820/secure-mcp-proxy)를 사용하세요:
+Để kết nối máy chủ MCP local, sử dụng [secure-mcp-proxy](https://github.com/gws8820/secure-mcp-proxy):
 
 ```bash
 git clone https://github.com/gws8820/secure-mcp-proxy
 cd secure-mcp-proxy
 uv run python -m secure_mcp_proxy --named-server-config servers.json --port 3000
 ```
-## 기여하기
+## Đóng góp
 
-1. 이 저장소를 포크합니다
-2. 새 브랜치를 생성합니다 (`git checkout -b feature/amazing-feature`)
-3. 변경사항을 커밋합니다 (`git commit -m 'Add amazing feature'`)
-4. 브랜치에 푸시합니다 (`git push origin feature/amazing-feature`)
-5. Pull Request를 생성합니다
+1. Fork repository này
+2. Tạo branch mới (`git checkout -b feature/amazing-feature`)
+3. Commit thay đổi (`git commit -m 'Add amazing feature'`)
+4. Push branch lên (`git push origin feature/amazing-feature`)
+5. Tạo Pull Request
    
-## 라이선스
+## Giấy phép
 
-이 프로젝트는 [MIT 라이선스](LICENSE)하에 배포됩니다.
+Dự án này được phát hành theo [giấy phép MIT](LICENSE)
