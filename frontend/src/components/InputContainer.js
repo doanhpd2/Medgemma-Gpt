@@ -9,7 +9,7 @@ import { FaPaperPlane, FaStop } from "react-icons/fa";
 import { SettingsContext } from "../contexts/SettingsContext";
 import MCPModal from "./MCPModal";
 import Toast from "./Toast";
- 
+
 function InputContainer({
   isTouch,
   placeholder,
@@ -72,9 +72,7 @@ function InputContainer({
     toggleDeepResearch,
   } = useContext(SettingsContext);
 
-  useEffect(() => {
-    adjustTextareaHeight();
-  }, [inputText, adjustTextareaHeight]);
+  useEffect(() => { adjustTextareaHeight(); }, [inputText, adjustTextareaHeight]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -83,9 +81,7 @@ function InputContainer({
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => { document.removeEventListener('mousedown', handleClickOutside); };
   }, []);
 
   const notifyError = useCallback((message) => {
@@ -101,9 +97,7 @@ function InputContainer({
         const item = items[i];
         if (item.kind === "file") {
           const file = item.getAsFile();
-          if (file) {
-            filesToUpload.push(file);
-          }
+          if (file) filesToUpload.push(file);
         }
       }
       if (filesToUpload.length > 0) {
@@ -160,8 +154,7 @@ function InputContainer({
           const transcript = result[0].transcript;
           if (result.isFinal) finalText += transcript; else interimText += transcript;
         }
-        const newText = inputText + finalText + interimText;
-        setInputText(newText);
+        setInputText(prev => prev + finalText + interimText);
       };
 
       recognition.onerror = (event) => {
@@ -170,10 +163,7 @@ function InputContainer({
         handleRecordingStop();
       };
 
-      recognition.onend = () => {
-        if (isRecording) recognition.start();
-      };
-
+      recognition.onend = () => { if (isRecording) recognition.start(); };
       recognition.start();
       recognitionRef.current = recognition;
       setIsRecording(true);
@@ -182,94 +172,58 @@ function InputContainer({
       setToastMessage("음성 인식을 시작하는 데 실패했습니다.");
       setShowToast(true);
     }
-  }, [isRecording, handleRecordingStop, inputText, setInputText]);
+  }, [isRecording, handleRecordingStop, setInputText]);
 
   useEffect(() => {
     if (isRecording) {
-      recordingTimerRef.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1);
-      }, 1000);
-    } else {
-      clearInterval(recordingTimerRef.current);
-      setRecordingTime(0);
-    }
+      recordingTimerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
+    } else clearInterval(recordingTimerRef.current);
     return () => clearInterval(recordingTimerRef.current);
   }, [isRecording]);
 
   const handleKeyDown = useCallback((event) => {
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey &&
-      !isComposing &&
-      !isTouch &&
-      !uploadingFiles
-    ) {
+    if (event.key === "Enter" && !event.shiftKey && !isComposing && !isTouch && !uploadingFiles) {
       event.preventDefault();
       onSend(inputText);
     }
   }, [inputText, isComposing, isTouch, uploadingFiles, onSend]);
 
   const handleSendButtonClick = useCallback(() => {
-    if (isLoading) {
-      onCancel?.();
-      return;
-    }
-    if (inputText.trim()) {
-      onSend(inputText);
-    } else {
-      setToastMessage("내용을 입력해주세요.");
-      setShowToast(true);
-    }
+    if (isLoading) { onCancel?.(); return; }
+    if (inputText.trim()) onSend(inputText);
+    else { setToastMessage("내용을 입력해주세요."); setShowToast(true); }
   }, [isLoading, inputText, onSend, onCancel]);
 
-  const handleMCPClick = useCallback(() => {
-    setIsMCPModalOpen(true);
-    setShowMediaOptions(false);
-  }, []);
-
-  const handleMCPModalClose = useCallback(() => {
-    setIsMCPModalOpen(false);
-  }, []);
-
-  const handleMCPModalConfirm = useCallback((selectedServers) => {
-    setMCPList(selectedServers);
-  }, [setMCPList]);
+  const handleMCPClick = useCallback(() => { setIsMCPModalOpen(true); setShowMediaOptions(false); }, []);
+  const handleMCPModalClose = useCallback(() => setIsMCPModalOpen(false), []);
+  const handleMCPModalConfirm = useCallback((selectedServers) => setMCPList(selectedServers), [setMCPList]);
 
   return (
-    <motion.div
-      className={`input-container ${extraClassName}`.trim()}
-      initial={{ y: 8, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
+    <motion.div className={`input-container ${extraClassName}`.trim()} initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="content-container">
         <AnimatePresence>
           {uploadedFiles.length > 0 && (
-            <motion.div
-              className="file-area"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
+            <motion.div className="file-area" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
               <AnimatePresence>
                 {uploadedFiles.map((file) => (
-                  <motion.div
-                    key={file.id}
-                    className="file-wrap"
-                    initial={{ y: 5, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 5, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    style={{ position: "relative" }}
-                  >
+                  <motion.div key={file.id} className="file-wrap" initial={{ y: 5, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 5, opacity: 0 }} transition={{ duration: 0.3 }} style={{ position: "relative" }}>
                     <div className="file-object">
-                      <span className="file-name">{file.name}</span>
-                      {!file.content && (
-                        <div className="file-upload-overlay">
-                          <ClipLoader size={20} />
-                        </div>
+                      {file.file && file.file.type.startsWith("image/") ? (
+                        <img
+                            src={file.content}
+                            alt={file.name}
+                            className="file-preview"
+                            style={{
+                              maxWidth: "120px",   // chiều rộng tối đa
+                              maxHeight: "120px",  // chiều cao tối đa
+                              objectFit: "cover",  // giữ tỉ lệ, crop nếu cần
+                              borderRadius: "8px", // bo góc nhẹ
+                            }}
+                          />
+                      ) : (
+                        <span className="file-name">{file.name}</span>
                       )}
+                      {!file.content && <div className="file-upload-overlay"><ClipLoader size={20} /></div>}
                     </div>
                     <BiX className="file-delete" onClick={() => handleFileDelete(file)} />
                   </motion.div>
@@ -282,26 +236,14 @@ function InputContainer({
         <div className="input-area">
           <AnimatePresence>
             {isRecording && (
-              <motion.div
-                className="recording-indicator"
-                initial={{ y: 5, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 5, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
+              <motion.div className="recording-indicator" initial={{ y: 5, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 5, opacity: 0 }} transition={{ duration: 0.3 }}>
                 <div className="recording-dot"></div>
                 <span>{`녹음 중... ${formatRecordingTime(recordingTime)}`}</span>
-                <button className="stop-recording-button" onClick={handleRecordingStop}>
-                  완료
-                </button>
+                <button className="stop-recording-button" onClick={handleRecordingStop}>완료</button>
               </motion.div>
             )}
           </AnimatePresence>
-          <textarea
-            ref={textAreaRef}
-            className="message-input"
-            placeholder={placeholder}
-            value={inputText}
+          <textarea ref={textAreaRef} className="message-input" placeholder={placeholder} value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onPaste={handlePaste}
             onKeyDown={handleKeyDown}
@@ -312,152 +254,36 @@ function InputContainer({
 
         <div className="button-area">
           <div className="function-button-container" ref={optionsRef}>
-            <motion.div
-              className="function-button plus-button"
-              onClick={handlePlusButtonClick}
-              transition={{ type: "physics", velocity: 200, stiffness: 100, damping: 15 }}
-              layout
-            >
+            <motion.div className="function-button plus-button" onClick={handlePlusButtonClick} transition={{ type: "physics", velocity: 200, stiffness: 100, damping: 15 }} layout>
               <GoPlus style={{ strokeWidth: 0.5 }} />
             </motion.div>
             <AnimatePresence>
               {showMediaOptions && (
-                <motion.div
-                  className="media-options-dropdown"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <div className="media-option" onClick={handleFileClick}>
-                    <FiPaperclip />
-                    파일 업로드
-                  </div>
-                  <div className="media-option" onClick={handleRecordingStart}>
-                    <FiMic />
-                    음성 인식
-                  </div>
-                  {canToggleMCP && (
-                    <div className="media-option" onClick={handleMCPClick}>
-                      <FiServer style={{ paddingLeft: "0.5px", color: "#5e5bff", strokeWidth: 2.5 }} />
-                      <span className="mcp-text">MCP 서버</span>
-                    </div>
-                  )}
+                <motion.div className="media-options-dropdown" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.2 }}>
+                  <div className="media-option" onClick={handleFileClick}><FiPaperclip />파일 업로드</div>
+                  <div className="media-option" onClick={handleRecordingStart}><FiMic />음성 인식</div>
+                  {canToggleMCP && <div className="media-option" onClick={handleMCPClick}><FiServer style={{ paddingLeft: "0.5px", color: "#5e5bff", strokeWidth: 2.5 }} /><span className="mcp-text">MCP 서버</span></div>}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-
-          <AnimatePresence initial={false}>
-            {canToggleSearch && (
-              <motion.div
-                key="search"
-                className={`function-button ${isSearch ? "active" : ""}`}
-                onClick={toggleSearch}
-                initial={{ x: -20, opacity: 0, scale: 0.8 }}
-                animate={{ x: 0, opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: "physics", velocity: 200, stiffness: 100, damping: 15 }}
-                layout
-              >
-                <GoGlobe style={{ strokeWidth: 0.5 }} />
-                <span className="button-text">검색</span>
-              </motion.div>
-            )}
-            {canToggleInference && (
-              <motion.div
-                key="inference"
-                className={`function-button ${isInference ? "active" : ""}`}
-                onClick={toggleInference}
-                initial={{ x: -20, opacity: 0, scale: 0.8 }}
-                animate={{ x: 0, opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: "physics", velocity: 200, stiffness: 100, damping: 15 }}
-                layout
-              >
-                <GoLightBulb style={{ strokeWidth: 0.5 }} />
-                <span className="button-text">추론</span>
-              </motion.div>
-            )}
-            {canToggleDeepResearch && (
-              <motion.div
-                key="deep-research"
-                className={`function-button ${isDeepResearch ? "active" : ""}`}
-                onClick={toggleDeepResearch}
-                initial={{ x: -20, opacity: 0, scale: 0.8 }}
-                animate={{ x: 0, opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: "physics", velocity: 200, stiffness: 100, damping: 15 }}
-                layout
-              >
-                <GoTelescope style={{ strokeWidth: 0.5 }} />
-                <span className="button-text">딥 리서치</span>
-              </motion.div>
-            )}
-            {canControlSystemMessage && (
-              <motion.div
-                key="dan"
-                className={`function-button ${isDAN ? "active" : ""}`}
-                onClick={() => setIsDAN(!isDAN)}
-                initial={{ x: -20, opacity: 0, scale: 0.8 }}
-                animate={{ x: 0, opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: "physics", velocity: 200, stiffness: 100, damping: 15 }}
-                layout
-              >
-                <GoUnlock style={{ strokeWidth: 0.5 }} />
-                <span className="button-text">DAN</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
 
-      <button
-        className="send-button"
-        onClick={handleSendButtonClick}
-        disabled={uploadingFiles || isRecording}
-        aria-label={isLoading ? "전송 중단" : "메시지 전송"}
-      >
-        {isLoading ? (
-          <div className="loading-container">
-            <ImSpinner8 className="spinner" />
-            <FaStop className="stop-icon" />
-          </div>
-        ) : (
-          <FaPaperPlane />
-        )}
+      <button className="send-button" onClick={handleSendButtonClick} disabled={uploadingFiles || isRecording} aria-label={isLoading ? "전송 중단" : "메시지 전송"}>
+        {isLoading ? <div className="loading-container"><ImSpinner8 className="spinner" /><FaStop className="stop-icon" /></div> : <FaPaperPlane />}
       </button>
 
-      <input
-        type="file"
-        accept="*/*"
-        multiple
-        ref={fileInputRef}
-        style={{ display: "none" }}
+      <input type="file" accept="*/*" multiple ref={fileInputRef} style={{ display: "none" }}
         onChange={async (e) => {
           const files = Array.from(e.target.files);
-          await processFiles(files, (errorMessage) => {
-            setToastMessage(errorMessage);
-            setShowToast(true);
-          }, canReadImage);
+          await processFiles(files, (msg) => { setToastMessage(msg); setShowToast(true); }, canReadImage);
           e.target.value = "";
         }}
       />
 
-      <MCPModal
-        isOpen={isMCPModalOpen}
-        onClose={handleMCPModalClose}
-        onConfirm={handleMCPModalConfirm}
-        currentMCPList={mcpList}
-      />
-
-      <Toast
-        type="error"
-        message={toastMessage}
-        isVisible={showToast}
-        onClose={() => setShowToast(false)}
-      />
+      <MCPModal isOpen={isMCPModalOpen} onClose={handleMCPModalClose} onConfirm={handleMCPModalConfirm} currentMCPList={mcpList} />
+      <Toast type="error" message={toastMessage} isVisible={showToast} onClose={() => setShowToast(false)} />
     </motion.div>
   );
 }
