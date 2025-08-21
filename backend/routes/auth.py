@@ -1,7 +1,7 @@
 import os
 import jwt
 import bcrypt
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from pymongo import MongoClient
 from fastapi import APIRouter, HTTPException, Cookie, Depends, Query, status
 from fastapi.responses import JSONResponse
@@ -11,7 +11,7 @@ from bson import ObjectId
 from datetime import datetime, timezone, timedelta
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
-load_dotenv()
+# load_dotenv()
 router = APIRouter()
 
 mongo_client = MongoClient(os.getenv('MONGODB_URI'))

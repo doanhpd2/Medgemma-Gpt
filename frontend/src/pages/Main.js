@@ -1,11 +1,11 @@
+// src/pages/Main.js
 import React, { useState, useEffect, useCallback, useRef, useContext } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { IoImageOutline } from "react-icons/io5";
 import { SettingsContext } from "../contexts/SettingsContext";
 import { ConversationsContext } from "../contexts/ConversationsContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFileUpload } from "../utils/useFileUpload";
-import axios from "../utils/axiosConfig";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
 import InputContainer from "../components/InputContainer";
@@ -13,125 +13,68 @@ import "../styles/Common.css";
 
 function Main({ isTouch }) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [notice, setNotice] = useState("");
-  const [noticeHash, setNoticeHash] = useState("");
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
-  const [confirmModal, setConfirmModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [confirmModal, setConfirmModal] = useState(false);
 
   const abortControllerRef = useRef(null);
 
-  const { 
-    uploadedFiles, 
-    processFiles, 
-    removeFile
-  } = useFileUpload([]);
+  const { uploadedFiles, processFiles, removeFile } = useFileUpload([]);
 
   const {
     modelsData,
     defaultModel,
     model,
     updateModel,
-    isInference,
-    isSearch,
-    isDeepResearch,
-    canReadImage,
-    setTemperature,
-    setReason,
-    setVerbosity,
-    setSystemMessage,
     setIsImage,
-    setIsDAN,
-    toggleInference,
-    toggleSearch,
-    toggleDeepResearch
+    canReadImage,
   } = useContext(SettingsContext);
 
   const { addConversation } = useContext(ConversationsContext);
 
-  const models = modelsData.models;
+  const models = modelsData.models || [];
   const uploadingFiles = uploadedFiles.some((file) => !file.content);
 
+  // Khởi tạo model mặc định
   useEffect(() => {
-    const fetchNotice = async () => {
-      try {
-        const noticeResponse = await axios.get(`${process.env.REACT_APP_FASTAPI_URL}/notice`);
-        const { message, hash } = noticeResponse.data;
-        setNotice(message);
-        setNoticeHash(hash);
-        
-        const storedHash = localStorage.getItem('noticeHash');
-        if (!storedHash || storedHash !== hash) {
-          setConfirmModal(true);
-        }
-      } catch (error) {}
-    };
-    
-    fetchNotice();
-  }, []);
-
-  useEffect(() => {
-    updateModel(defaultModel);
-
-    if (isInference) toggleInference();
-    if (isSearch) toggleSearch();
-    if (isDeepResearch) toggleDeepResearch();
-    
-    setTemperature(0.5);
-    setReason(0.5);
-    setVerbosity(0.5);
-    setSystemMessage("");
+    updateModel(defaultModel || models[0]);
     setIsImage(false);
-    setIsDAN(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (location.state?.errorModal) {
-      setToastMessage(location.state.errorModal);
-      setShowToast(true);
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
-
+  // Xử lý gửi message -> tạo conversation trực tiếp đến MedGemma
   const sendMessage = useCallback(
     async (message) => {
-      if (!message.trim() || uploadingFiles) return;
+      if (!message.trim() || uploadingFiles) {
+        setToastMessage("Vui lòng nhập nội dung hoặc đang upload file.");
+        setShowToast(true);
+        return;
+      }
+
       try {
-        const selectedModel = models.find((m) => m.model_name === model);
-        if (!selectedModel) {
-          throw new Error("선택한 모델이 유효하지 않습니다.");
-        }
         setIsLoading(true);
-        
-        const controller = new AbortController();
-        abortControllerRef.current = controller;
-        
-        const response = await axios.post(
-          `${process.env.REACT_APP_FASTAPI_URL}/new_conversation`, {},
-          { 
-            withCredentials: true,
-            signal: controller.signal
-          }
-        );
-        
-        const conversation_id = response.data.conversation_id;
-        const created_at = response.data.created_at;
-        
+
+        const selectedModel = models.find((m) => m.model_name === model) || models[0];
+        if (!selectedModel) throw new Error("Model không hợp lệ.");
+
+        // Tạo conversation ID local
+        const conversation_id = `conv_${Date.now()}`;
+
+        // Thêm conversation vào context (dùng local)
         const newConversation = {
           conversation_id,
           alias: "Cuộc trò chuyện mới",
           starred: false,
           starred_at: null,
-          created_at: created_at,
-          isLoading: true
+          created_at: Date.now(),
+          isLoading: true,
         };
         addConversation(newConversation);
-        
+
+        // Chuyển sang Chat.js với conversation_id và initialMessage
         navigate(`/chat/${conversation_id}`, {
           state: {
             initialMessage: message,
@@ -142,19 +85,12 @@ function Main({ isTouch }) {
       } catch (error) {
         setToastMessage("Không thể bắt đầu cuộc trò chuyện mới.");
         setShowToast(true);
-        setIsLoading(false);
       } finally {
+        setIsLoading(false);
         abortControllerRef.current = null;
       }
     },
-    [
-      models,
-      model,
-      navigate,
-      uploadedFiles,
-      uploadingFiles,
-      addConversation
-    ]
+    [models, model, navigate, uploadedFiles, uploadingFiles, addConversation]
   );
 
   const cancelRequest = useCallback(() => {
@@ -163,16 +99,17 @@ function Main({ isTouch }) {
       abortControllerRef.current = null;
     }
   }, []);
-  
+
   useEffect(() => {
     const hasUploadedImage = uploadedFiles.some((file) => {
-      return (file.type && (file.type === "image" || file.type.startsWith("image/"))) || 
-        /\.(jpe?g|png|gif|bmp|webp)$/i.test(file.name);
+      return (
+        (file.type && (file.type === "image" || file.type.startsWith("image/"))) ||
+        /\.(jpe?g|png|gif|bmp|webp)$/i.test(file.name)
+      );
     });
     setIsImage(hasUploadedImage);
-  },
-  [setIsImage, uploadedFiles]);
-  
+  }, [setIsImage, uploadedFiles]);
+
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     setIsDragActive(true);
@@ -217,7 +154,6 @@ function Main({ isTouch }) {
       <InputContainer
         isTouch={isTouch}
         placeholder="Nhập nội dung"
-        extraClassName="main-input-container"
         inputText={inputText}
         setInputText={setInputText}
         isLoading={isLoading}
@@ -247,25 +183,22 @@ function Main({ isTouch }) {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {confirmModal && (
-          <Modal
-            message={notice}
-            onConfirm={() => {
-              localStorage.setItem('noticeHash', noticeHash);
-              setConfirmModal(false);
-            }}
-            showCancelButton={false}
-          />
-        )}
-      </AnimatePresence>
-
       <Toast
         type="error"
         message={toastMessage}
         isVisible={showToast}
         onClose={() => setShowToast(false)}
       />
+
+      <AnimatePresence>
+        {confirmModal && (
+          <Modal
+            message="Thông báo quan trọng"
+            onConfirm={() => setConfirmModal(false)}
+            showCancelButton={false}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

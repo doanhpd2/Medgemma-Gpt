@@ -100,7 +100,7 @@ const ConversationItem = React.memo(({
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
-                로딩 중...
+                Đang tải...
               </motion.span>
             ) : (
               <motion.span
@@ -498,6 +498,10 @@ function Sidebar({
           <div className="new-task" onClick={handleRealtimeConversation}>
             <LuAudioLines />
             Trò chuyện thời gian thực
+          </div>
+          <div className="new-task" onClick={() => navigate('/medgemma-test')}>
+            <LuImage />
+            MedGemma 4B Local
           </div>
           <div className="new-task" onClick={handleImageGeneration}>
             <LuImage />

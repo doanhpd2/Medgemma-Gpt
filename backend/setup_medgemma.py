@@ -43,7 +43,7 @@ def download_medgemma_model():
             return False
     
     try:
-        model_name = "google/medgemma-4b"
+        model_name = "google/medgemma-4b-it"
         
         print(f"Downloading tokenizer from {model_name}...")
         tokenizer = AutoTokenizer.from_pretrained(
@@ -97,7 +97,7 @@ def download_medgemma_model():
             print("\n🔍 Model Access Error:")
             print("You don't have access to the MedGemma 4B model.")
             print("Please check if you have accepted the model terms on Hugging Face:")
-            print("https://huggingface.co/google/medgemma-4b")
+            print("https://huggingface.co/google/medgemma-4b-it")
         else:
             print("\nTroubleshooting tips:")
             print("1. Make sure you have enough disk space (at least 8GB)")

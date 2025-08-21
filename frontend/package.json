@@ -5,6 +5,7 @@
   "homepage": ".",
   "proxy": "http://localhost:8000",
   "dependencies": {
+    "@huggingface/inference": "^2.8.1",
     "@testing-library/react": "^16.2.0",
     "axios": "^1.8.1",
     "cra-template": "^1.2.0",
@@ -52,7 +53,9 @@
     "release:rollback": "echo 'Release rollback scripts are Unix-only, run in WSL or Linux'"
   },
   "eslintConfig": {
-    "extends": ["react-app"]
+    "extends": [
+      "react-app"
+    ]
   },
   "browserslist": {
     "production": [

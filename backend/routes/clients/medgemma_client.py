@@ -37,7 +37,7 @@ def load_medgemma_model():
         logger.info("Loading MedGemma 4B model...")
         
         # MedGemma 4B model from Hugging Face
-        model_name = "google/medgemma-4b"
+        model_name = "google/medgemma-4b-it"
         
         # Get Hugging Face access token from environment
         hf_token = os.getenv('HUGGINGFACE_TOKEN')

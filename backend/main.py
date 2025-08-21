@@ -2,7 +2,6 @@ import os
 import re
 import json
 import requests
-from dotenv import load_dotenv
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Response, Depends
 from fastapi.responses import HTMLResponse
@@ -14,6 +13,7 @@ from routes.auth import User, get_current_user
 from bs4 import BeautifulSoup
 import base64
 from logging_util import LoggingMiddleware
+from dotenv import load_dotenv
 
 class URLRequest(BaseModel):
     url: str
@@ -39,10 +39,7 @@ app.include_router(medgemma_client.router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        os.getenv('PRODUCTION_URL'),
-        os.getenv('DEVELOPMENT_URL')
-    ],
+    allow_origins=["*"],   # hoặc ["http://localhost:3000"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,20 +62,19 @@ async def get_notice():
     )
 
 @app.get("/models", response_model=dict)
-async def get_models(user: User = Depends(get_current_user)):
+async def get_models():
     try:
         with open("models.json", "r", encoding="utf-8") as f:
             models_data = json.load(f)
             
         models = []
         for model in models_data["models"]:
-            if not user.admin and model["admin"]:
-                continue
             models.append(model)
         
         return {"models": models}
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"Error occurred while fetching models: {str(ex)}")
+
 
 @app.get("/mcp-servers", response_model=list[MCPServer])
 async def get_mcp_servers(user: User = Depends(get_current_user)):

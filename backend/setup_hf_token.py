@@ -26,7 +26,7 @@ def open_hf_links():
     links = {
         "Join Hugging Face": "https://huggingface.co/join",
         "Token Settings": "https://huggingface.co/settings/tokens",
-        "MedGemma 4B Model": "https://huggingface.co/google/medgemma-4b"
+        "MedGemma 4B Model": "https://huggingface.co/google/medgemma-4b-it"
     }
     
     for name, url in links.items():
@@ -102,7 +102,7 @@ def test_token():
         import requests
         
         headers = {"Authorization": f"Bearer {token}"}
-        response = requests.get("https://huggingface.co/api/models/google/medgemma-4b", headers=headers)
+        response = requests.get("https://huggingface.co/api/models/google/medgemma-4b-it", headers=headers)
         
         if response.status_code == 200:
             print("✅ Token is valid and can access MedGemma 4B!")
@@ -112,7 +112,7 @@ def test_token():
             return False
         elif response.status_code == 404:
             print("❌ Model not found or access denied. Please accept the model terms:")
-            print("https://huggingface.co/google/medgemma-4b")
+            print("https://huggingface.co/google/medgemma-4b-it")
             return False
         else:
             print(f"❌ Unexpected response: {response.status_code}")
