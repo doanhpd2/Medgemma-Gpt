@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
-import { GoPlus, GoGlobe, GoLightBulb, GoTelescope, GoUnlock } from "react-icons/go";
+import { GoPlus, GoServer } from "react-icons/go";
 import { ImSpinner8 } from "react-icons/im";
 import { BiX } from "react-icons/bi";
-import { FiPaperclip, FiMic, FiServer } from "react-icons/fi";
+import { FiPaperclip } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { ClipLoader } from "react-spinners";
-import { FaPaperPlane, FaStop } from "react-icons/fa";
+import { FaPaperPlane } from "react-icons/fa";
 import { SettingsContext } from "../contexts/SettingsContext";
 import MCPModal from "./MCPModal";
 import Toast from "./Toast";
@@ -26,8 +26,6 @@ function InputContainer({
 }) {
   const [isComposing, setIsComposing] = useState(false);
   const [showMediaOptions, setShowMediaOptions] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
   const [isMCPModalOpen, setIsMCPModalOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -35,8 +33,6 @@ function InputContainer({
   const optionsRef = useRef(null);
   const textAreaRef = useRef(null);
   const fileInputRef = useRef(null);
-  const recognitionRef = useRef(null);
-  const recordingTimerRef = useRef(null);
 
   const adjustTextareaHeight = useCallback(() => {
     const textarea = textAreaRef.current;
@@ -47,29 +43,10 @@ function InputContainer({
     }
   }, []);
 
-  const formatRecordingTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
   const {
-    isInference,
-    isSearch,
-    isDeepResearch,
-    isDAN,
     mcpList,
-    canControlSystemMessage,
-    canReadImage,
-    canToggleInference,
-    canToggleSearch,
-    canToggleDeepResearch,
     canToggleMCP,
-    setIsDAN,
     setMCPList,
-    toggleInference,
-    toggleSearch,
-    toggleDeepResearch,
   } = useContext(SettingsContext);
 
   useEffect(() => { adjustTextareaHeight(); }, [inputText, adjustTextareaHeight]);
@@ -102,10 +79,10 @@ function InputContainer({
       }
       if (filesToUpload.length > 0) {
         e.preventDefault();
-        await processFiles(filesToUpload, notifyError, canReadImage);
+        await processFiles(filesToUpload, notifyError);
       }
     },
-    [processFiles, canReadImage, notifyError]
+    [processFiles, notifyError]
   );
 
   const handlePlusButtonClick = useCallback((e) => {
@@ -123,64 +100,6 @@ function InputContainer({
     removeFile(file.id);
   }, [removeFile]);
 
-  const handleRecordingStop = useCallback(() => {
-    if (recognitionRef.current && isRecording) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-      clearInterval(recordingTimerRef.current);
-      setRecordingTime(0);
-      setIsRecording(false);
-    }
-  }, [isRecording]);
-
-  const handleRecordingStart = useCallback(async () => {
-    try {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        setToastMessage("이 브라우저는 음성 인식을 지원하지 않습니다.");
-        setShowToast(true);
-        return;
-      }
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'ko-KR';
-      recognition.continuous = true;
-      recognition.interimResults = true;
-
-      recognition.onresult = (event) => {
-        let finalText = '';
-        let interimText = '';
-        for (let i = 0; i < event.results.length; i++) {
-          const result = event.results[i];
-          const transcript = result[0].transcript;
-          if (result.isFinal) finalText += transcript; else interimText += transcript;
-        }
-        setInputText(prev => prev + finalText + interimText);
-      };
-
-      recognition.onerror = (event) => {
-        setToastMessage(`음성 인식 오류가 발생했습니다. ${event.error}`);
-        setShowToast(true);
-        handleRecordingStop();
-      };
-
-      recognition.onend = () => { if (isRecording) recognition.start(); };
-      recognition.start();
-      recognitionRef.current = recognition;
-      setIsRecording(true);
-      setShowMediaOptions(false);
-    } catch (error) {
-      setToastMessage("음성 인식을 시작하는 데 실패했습니다.");
-      setShowToast(true);
-    }
-  }, [isRecording, handleRecordingStop, setInputText]);
-
-  useEffect(() => {
-    if (isRecording) {
-      recordingTimerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
-    } else clearInterval(recordingTimerRef.current);
-    return () => clearInterval(recordingTimerRef.current);
-  }, [isRecording]);
-
   const handleKeyDown = useCallback((event) => {
     if (event.key === "Enter" && !event.shiftKey && !isComposing && !isTouch && !uploadingFiles) {
       event.preventDefault();
@@ -191,7 +110,7 @@ function InputContainer({
   const handleSendButtonClick = useCallback(() => {
     if (isLoading) { onCancel?.(); return; }
     if (inputText.trim()) onSend(inputText);
-    else { setToastMessage("내용을 입력해주세요."); setShowToast(true); }
+    else { setToastMessage("Vui lòng nhập nội dung."); setShowToast(true); }
   }, [isLoading, inputText, onSend, onCancel]);
 
   const handleMCPClick = useCallback(() => { setIsMCPModalOpen(true); setShowMediaOptions(false); }, []);
@@ -214,10 +133,10 @@ function InputContainer({
                             alt={file.name}
                             className="file-preview"
                             style={{
-                              maxWidth: "120px",   // chiều rộng tối đa
-                              maxHeight: "120px",  // chiều cao tối đa
-                              objectFit: "cover",  // giữ tỉ lệ, crop nếu cần
-                              borderRadius: "8px", // bo góc nhẹ
+                              maxWidth: "120px",
+                              maxHeight: "120px",
+                              objectFit: "cover",
+                              borderRadius: "8px",
                             }}
                           />
                       ) : (
@@ -234,15 +153,6 @@ function InputContainer({
         </AnimatePresence>
 
         <div className="input-area">
-          <AnimatePresence>
-            {isRecording && (
-              <motion.div className="recording-indicator" initial={{ y: 5, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 5, opacity: 0 }} transition={{ duration: 0.3 }}>
-                <div className="recording-dot"></div>
-                <span>{`녹음 중... ${formatRecordingTime(recordingTime)}`}</span>
-                <button className="stop-recording-button" onClick={handleRecordingStop}>완료</button>
-              </motion.div>
-            )}
-          </AnimatePresence>
           <textarea ref={textAreaRef} className="message-input" placeholder={placeholder} value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onPaste={handlePaste}
@@ -260,9 +170,8 @@ function InputContainer({
             <AnimatePresence>
               {showMediaOptions && (
                 <motion.div className="media-options-dropdown" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.2 }}>
-                  <div className="media-option" onClick={handleFileClick}><FiPaperclip />파일 업로드</div>
-                  <div className="media-option" onClick={handleRecordingStart}><FiMic />음성 인식</div>
-                  {canToggleMCP && <div className="media-option" onClick={handleMCPClick}><FiServer style={{ paddingLeft: "0.5px", color: "#5e5bff", strokeWidth: 2.5 }} /><span className="mcp-text">MCP 서버</span></div>}
+                  <div className="media-option" onClick={handleFileClick}><FiPaperclip />Tải file lên</div>
+                  {canToggleMCP && <div className="media-option" onClick={handleMCPClick}><GoServer style={{ paddingLeft: "0.5px", color: "#5e5bff", strokeWidth: 2.5 }} /><span className="mcp-text">MCP Server</span></div>}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -270,14 +179,14 @@ function InputContainer({
         </div>
       </div>
 
-      <button className="send-button" onClick={handleSendButtonClick} disabled={uploadingFiles || isRecording} aria-label={isLoading ? "전송 중단" : "메시지 전송"}>
-        {isLoading ? <div className="loading-container"><ImSpinner8 className="spinner" /><FaStop className="stop-icon" /></div> : <FaPaperPlane />}
+      <button className="send-button" onClick={handleSendButtonClick} disabled={uploadingFiles} aria-label={isLoading ? "Đang gửi..." : "Gửi tin nhắn"}>
+        {isLoading ? <div className="loading-container"><ImSpinner8 className="spinner" /></div> : <FaPaperPlane />}
       </button>
 
       <input type="file" accept="*/*" multiple ref={fileInputRef} style={{ display: "none" }}
         onChange={async (e) => {
           const files = Array.from(e.target.files);
-          await processFiles(files, (msg) => { setToastMessage(msg); setShowToast(true); }, canReadImage);
+          await processFiles(files, (msg) => { setToastMessage(msg); setShowToast(true); });
           e.target.value = "";
         }}
       />
