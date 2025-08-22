@@ -28,5 +28,5 @@ export const useFileUpload = (initialFiles = []) => {
     setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
   }, []);
 
-  return { uploadedFiles, processFiles, removeFile, maxFileSize };
+  return { uploadedFiles, setUploadedFiles, processFiles, removeFile, maxFileSize };
 };

@@ -21,7 +21,6 @@ function Chat({ isTouch, chatMessageRef }) {
   const [toastMessage, setToastMessage] = useState("");
 
   const { uploadedFiles, setUploadedFiles, processFiles, removeFile } = useFileUpload([]);
-
   const messagesEndRef = useRef(null);
 
   const generateMessageId = () => `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -39,6 +38,7 @@ function Chat({ isTouch, chatMessageRef }) {
     []
   );
 
+  // --- Main sendMessage logic (upload images first) ---
   const sendMessage = useCallback(
     async (message, files = uploadedFiles) => {
       if (!message.trim() && files.length === 0) {
@@ -47,24 +47,45 @@ function Chat({ isTouch, chatMessageRef }) {
         return;
       }
 
+      // Tạo message user preview
       const contentParts = [{ type: "text", text: message }, ...files];
       const userMessage = { role: "user", content: contentParts, id: generateMessageId() };
       setMessages((prev) => [...prev, userMessage]);
+
       setInputText("");
       setUploadedFiles([]);
       setIsLoading(true);
       setScrollOnSend(true);
 
       try {
+        // 1️⃣ Upload images lên Node server /api/upload
+        const imagePaths = [];
+        for (const fileObj of files) {
+          if (fileObj.file instanceof File) {
+            const formData = new FormData();
+            formData.append("image", fileObj.file);
+            const uploadRes = await fetch(`${PROXY_BASE}/upload`, {
+              method: "POST",
+              body: formData,
+            });
+            if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
+            const { path } = await uploadRes.json();
+            imagePaths.push(path);
+          }
+        }
+
+        // 2️⃣ Gửi JSON { prompt, image_paths } tới Flask server
         const result = await fetch(`${PROXY_BASE}/generate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: message }),
+          body: JSON.stringify({
+            prompt: message,
+            image_paths: imagePaths
+          }),
         });
 
         if (!result.ok) throw new Error(`Server error: ${result.status}`);
         const data = await result.json();
-
         const assistantText = data.response || data.generated_text;
         updateAssistantMessage(assistantText);
 
@@ -91,7 +112,6 @@ function Chat({ isTouch, chatMessageRef }) {
     }
   }, [messages, scrollOnSend]);
 
-  // --- NEW: handle preview remove ---
   const handleRemovePreview = useCallback((index) => {
     removeFile(index);
   }, [removeFile]);

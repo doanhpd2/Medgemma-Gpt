@@ -6,6 +6,29 @@ const app = express();
 app.use(express.json()); // parse JSON body
 app.use(express.static(path.join(__dirname, 'build')));
 
+const multer = require('multer');
+const fs = require('fs');
+
+const UPLOAD_DIR = path.join(__dirname, 'uploads');
+
+// Tạo folder nếu chưa có
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+});
+
+const upload = multer({ storage });
+
+// POST /api/upload
+app.post('/api/upload', upload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+  // Trả về path để frontend gửi lên Flask
+  res.json({ path: `/uploads/${req.file.filename}` });
+});
+
 // Proxy /api/health → backend MedGemma
 app.get('/api/health', async (req, res) => {
   try {
@@ -21,6 +44,7 @@ app.post('/api/generate', async (req, res) => {
   try {
     const response = await axios.post('http://192.168.1.220:8001/generate', req.body, {
       headers: { 'Content-Type': 'application/json' },
+      timeout: 520000
     });
     res.json(response.data);
   } catch (err) {

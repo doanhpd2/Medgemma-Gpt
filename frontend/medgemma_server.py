@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import os
-import json
 import logging
+from io import BytesIO
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from PIL import Image
+from transformers import AutoProcessor, AutoModelForImageTextToText
 
 # ----------------------
 # Logging
@@ -17,30 +18,30 @@ logger = logging.getLogger(__name__)
 # Flask setup
 # ----------------------
 app = Flask(__name__)
-CORS(app)  # cho phép frontend cross-origin
+CORS(app)
 
 # ----------------------
 # Global model variables
 # ----------------------
 model = None
-tokenizer = None
+processor = None
 device = None
 
 # ----------------------
 # Load model
 # ----------------------
 def load_model():
-    global model, tokenizer, device
+    global model, processor, device
     try:
-        logger.info("Loading MedGemma model...")
+        logger.info("Loading MedGemma-4b-it model...")
         device = "cuda" if torch.cuda.is_available() else "cpu"
         logger.info(f"Using device: {device}")
 
-        model_name = "google/medgemma-4b-it"
+        model_id = "google/medgemma-4b-it"
 
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name,
+        processor = AutoProcessor.from_pretrained(model_id)
+        model = AutoModelForImageTextToText.from_pretrained(
+            model_id,
             torch_dtype=torch.bfloat16 if device=="cuda" else torch.float32,
             device_map="auto" if device=="cuda" else None,
             trust_remote_code=True
@@ -60,70 +61,61 @@ def load_model():
 # ----------------------
 @app.route('/health', methods=['GET'])
 def health_check():
-    if model is not None and tokenizer is not None:
+    if model is not None and processor is not None:
         return jsonify({"status": "healthy", "model_loaded": True, "device": device}), 200
     else:
         return jsonify({"status": "unhealthy", "model_loaded": False}), 503
 
 # ----------------------
-# Generate endpoint
+# Generate endpoint (text + optional image)
 # ----------------------
 @app.route('/generate', methods=['POST'])
 def generate_text():
     try:
-        data = request.get_json()
-        prompt = data.get('prompt', '').strip()
+        pil_images = []
+
+        if request.content_type.startswith("multipart/form-data"):
+            prompt = request.form.get("prompt", "").strip()
+            files = request.files.getlist("image")
+            for f in files:
+                pil_images.append(Image.open(io.BytesIO(f.read())).convert("RGB"))
+
+        else:  # JSON
+            data = request.get_json()
+            prompt = data.get("prompt", "").strip()
+            image_paths = data.get("image_paths", [])  # <-- nhận path từ frontend
+            for path in image_paths:
+                try:
+                    pil_images.append(Image.open(path).convert("RGB"))
+                except Exception as e:
+                    logger.warning(f"Không mở được ảnh {path}: {e}")
+
         if not prompt:
             return jsonify({"error": "Prompt is empty"}), 400
 
-        max_new_tokens = data.get('max_new_tokens', 512)
-        do_sample = data.get('do_sample', True)
-        temperature = min(max(data.get('temperature', 0.7), 0.1), 0.9)
-        top_p = min(max(data.get('top_p', 0.1), 0.1), 0.95)
+        # --- Build messages + generate như cũ ---
+        messages = [
+            {"role": "system", "content": [{"type": "text", "text": "You are an expert radiologist."}]},
+            {"role": "user", "content": [{"type": "text", "text": prompt}] + [{"type": "image", "image": img} for img in pil_images]}
+        ]
 
-        # --- Tokenize input ---
-        inputs = tokenizer(prompt, return_tensors="pt")
+        inputs = processor.apply_chat_template(
+            messages, add_generation_prompt=True, tokenize=True,
+            return_dict=True, return_tensors="pt"
+        ).to(model.device, dtype=torch.bfloat16 if device=="cuda" else torch.float32)
 
-        # Chia dtype đúng:
-        # input_ids luôn long
-        # các tensor khác có thể bfloat16 trên GPU
-        inputs = {k: (v.to(device=device, dtype=torch.long) if k=="input_ids"
-                      else v.to(device=device, dtype=torch.bfloat16 if device=="cuda" else torch.float32))
-                  for k, v in inputs.items()}
+        input_len = inputs["input_ids"].shape[-1]
 
-        generate_kwargs = {
-            **inputs,
-            "max_new_tokens": max_new_tokens,
-            "do_sample": do_sample,
-            "temperature": temperature,
-            "top_p": top_p,
-            "pad_token_id": tokenizer.eos_token_id,
-        }
-
-        # --- Generate text safely ---
         with torch.inference_mode():
-            try:
-                outputs = model.generate(**generate_kwargs)
-            except RuntimeError as e:
-                logger.error(f"GPU error: {e}, retrying on CPU...")
-                model.to("cpu")
-                inputs = {k: (v.to("cpu", dtype=torch.long) if k=="input_ids"
-                              else v.to("cpu", dtype=torch.float32))
-                          for k, v in inputs.items()}
-                outputs = model.generate(**generate_kwargs)
+            outputs = model.generate(**inputs, max_new_tokens=1024, do_sample=False)
+            outputs = outputs[0][input_len:]
 
-        generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        response_text = generated_text[len(prompt):].strip()
-
-        return jsonify({
-            "response": response_text,
-            "generated_text": generated_text,
-            "input_prompt": prompt
-        }), 200
+        decoded = processor.decode(outputs, skip_special_tokens=True)
+        return jsonify({"response": decoded, "generated_text": decoded, "input_prompt": prompt}), 200
 
     except Exception as e:
-        logger.error(f"Error generating text: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 # ----------------------
 # Model info endpoint
