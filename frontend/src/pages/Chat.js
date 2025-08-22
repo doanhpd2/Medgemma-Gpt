@@ -47,11 +47,6 @@ function Chat({ isTouch, chatMessageRef }) {
         return;
       }
 
-      // Tạo message user preview
-      const contentParts = [{ type: "text", text: message }, ...files];
-      const userMessage = { role: "user", content: contentParts, id: generateMessageId() };
-      setMessages((prev) => [...prev, userMessage]);
-
       setInputText("");
       setUploadedFiles([]);
       setIsLoading(true);
@@ -73,8 +68,21 @@ function Chat({ isTouch, chatMessageRef }) {
             imagePaths.push(path);
           }
         }
-        console.log("prompt ", message)
-        console.log("image_path", imagePaths)
+
+        console.log("prompt:", message);
+        console.log("imagePaths:", imagePaths);
+
+        // 🔹 Tạo message user gồm text + ảnh upload
+        const imageParts = files.map((fileObj) => ({
+          type: "image",
+          content: fileObj.content || URL.createObjectURL(fileObj.file),
+        }));
+        const userMessage = {
+          role: "user",
+          content: [{ type: "text", text: message }, ...imageParts],
+          id: generateMessageId(),
+        };
+        setMessages((prev) => [...prev, userMessage]);
 
         // 2️⃣ Gửi JSON { prompt, image_paths } tới Flask server
         const result = await fetch(`${PROXY_BASE}/generate`, {
@@ -82,12 +90,14 @@ function Chat({ isTouch, chatMessageRef }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prompt: message,
-            image_paths: imagePaths
+            image_paths: imagePaths,
           }),
         });
 
         if (!result.ok) throw new Error(`Server error: ${result.status}`);
         const data = await result.json();
+        console.log("Server response data:", data);
+
         const assistantText = data.response || data.generated_text;
         updateAssistantMessage(assistantText);
 
@@ -99,6 +109,7 @@ function Chat({ isTouch, chatMessageRef }) {
     },
     [uploadedFiles, setUploadedFiles, updateAssistantMessage, setErrorMessage]
   );
+
 
   const handleDelete = useCallback((idx) => {
     setDeleteIndex(idx);
