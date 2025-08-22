@@ -73,6 +73,8 @@ function Chat({ isTouch, chatMessageRef }) {
             imagePaths.push(path);
           }
         }
+        console.log("prompt ", message)
+        console.log("image_path", imagePaths)
 
         // 2️⃣ Gửi JSON { prompt, image_paths } tới Flask server
         const result = await fetch(`${PROXY_BASE}/generate`, {

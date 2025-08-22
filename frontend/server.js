@@ -26,7 +26,9 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
   // Trả về path để frontend gửi lên Flask
-  res.json({ path: `/uploads/${req.file.filename}` });
+  // Trả đường dẫn tuyệt đối để Flask đọc
+  const absolutePath = path.join(UPLOAD_DIR, req.file.filename);
+  res.json({ path: absolutePath });
 });
 
 // Proxy /api/health → backend MedGemma

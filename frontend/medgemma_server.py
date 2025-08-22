@@ -7,7 +7,7 @@ from flask_cors import CORS
 import torch
 from PIL import Image
 from transformers import AutoProcessor, AutoModelForImageTextToText
-
+import io
 # ----------------------
 # Logging
 # ----------------------
@@ -74,16 +74,19 @@ def generate_text():
     try:
         pil_images = []
 
+        # --- Nếu gửi FormData ---
         if request.content_type.startswith("multipart/form-data"):
             prompt = request.form.get("prompt", "").strip()
             files = request.files.getlist("image")
             for f in files:
                 pil_images.append(Image.open(io.BytesIO(f.read())).convert("RGB"))
 
-        else:  # JSON
+        # --- Nếu gửi JSON { prompt, image_paths } ---
+        else:
             data = request.get_json()
             prompt = data.get("prompt", "").strip()
-            image_paths = data.get("image_paths", [])  # <-- nhận path từ frontend
+            image_paths = data.get("image_paths", [])
+
             for path in image_paths:
                 try:
                     pil_images.append(Image.open(path).convert("RGB"))
@@ -93,9 +96,9 @@ def generate_text():
         if not prompt:
             return jsonify({"error": "Prompt is empty"}), 400
 
-        # --- Build messages + generate như cũ ---
+        # --- Build messages và generate ---
         messages = [
-            {"role": "system", "content": [{"type": "text", "text": "You are an expert radiologist."}]},
+            {"role": "system", "content": [{"type": "text", "text": "Bạn là một chuyên gia hỗ trợ y tế cho bác sĩ."}]},
             {"role": "user", "content": [{"type": "text", "text": prompt}] + [{"type": "image", "image": img} for img in pil_images]}
         ]
 
@@ -115,6 +118,7 @@ def generate_text():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 # ----------------------
