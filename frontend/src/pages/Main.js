@@ -73,7 +73,7 @@ function Main({ isTouch }) {
           isLoading: true,
         };
         addConversation(newConversation);
-
+        console.log("create new conversation")
         // Chuyển sang Chat.js với conversation_id và initialMessage
         navigate(`/chat/${conversation_id}`, {
           state: {

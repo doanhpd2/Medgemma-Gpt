@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFileUpload } from "../utils/useFileUpload";
 import Message from "../components/Message";
@@ -7,11 +6,12 @@ import Modal from "../components/Modal";
 import Toast from "../components/Toast";
 import InputContainer from "../components/InputContainer";
 import "../styles/Common.css";
+import { useParams, useLocation } from "react-router-dom";
 
 function Chat({ isTouch, chatMessageRef }) {
   const PROXY_BASE = '/proxy/3000/api';
   const { conversation_id } = useParams();
-  const [messages, setMessages] = useState([]);
+  
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [scrollOnSend, setScrollOnSend] = useState(false);
@@ -37,6 +37,13 @@ function Chat({ isTouch, chatMessageRef }) {
     (startIndex) => setMessages((prev) => prev.slice(0, startIndex)),
     []
   );
+
+  const location = useLocation();
+
+  const initialMessage = location.state?.initialMessage;
+  const initialFiles = location.state?.initialFiles || [];
+
+  const [messages, setMessages] = useState([]);
 
   // --- Main sendMessage logic (upload images first) ---
   const sendMessage = useCallback(
@@ -115,6 +122,66 @@ function Chat({ isTouch, chatMessageRef }) {
     setDeleteIndex(idx);
     setConfirmModal(true);
   }, []);
+
+  // Gửi tin nhắn đầu tiên tự động tới server
+  useEffect(() => {
+    if (initialMessage) {
+      const sendInitialMessage = async () => {
+        // sendMessage clone nhưng dùng initialFiles, không tham chiếu uploadedFiles
+        const files = initialFiles || [];
+        setIsLoading(true);
+
+        try {
+          // tạo user message
+          const imageParts = files.map((fileObj) => ({
+            type: "image",
+            content: fileObj.content || URL.createObjectURL(fileObj.file),
+          }));
+          const userMessage = {
+            role: "user",
+            content: [{ type: "text", text: initialMessage }, ...imageParts],
+            id: `msg_${Date.now()}_init`,
+          };
+          setMessages((prev) => [...prev, userMessage]);
+
+          // gửi request server
+          const imagePaths = []; 
+          for (const fileObj of files) {
+            if (fileObj.file instanceof File) {
+              const formData = new FormData();
+              formData.append("image", fileObj.file);
+              const uploadRes = await fetch(`${PROXY_BASE}/upload`, {
+                method: "POST",
+                body: formData,
+              });
+              const { path } = await uploadRes.json();
+              imagePaths.push(path);
+            }
+          }
+
+          const result = await fetch(`${PROXY_BASE}/generate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt: initialMessage,
+              image_paths: imagePaths,
+            }),
+          });
+          const data = await result.json();
+          const assistantText = data.response || data.generated_text;
+          updateAssistantMessage(assistantText);
+
+        } catch (err) {
+          setErrorMessage("Lỗi gửi tin nhắn: " + (err.message || "Không thể gửi yêu cầu"));
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      sendInitialMessage();
+    }
+  }, []); // chỉ chạy 1 lần khi mount
+
 
   useEffect(() => {
     if (scrollOnSend) {
