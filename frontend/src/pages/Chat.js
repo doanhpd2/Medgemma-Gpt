@@ -148,38 +148,6 @@ function Chat({ isTouch, chatMessageRef }) {
           [messages, handleDelete, isTouch, isLoading]
         )}
 
-        {/* Preview selected images */}
-        {uploadedFiles.length > 0 && (
-          <div className="image-preview-container" style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" }}>
-            {uploadedFiles.map((file, idx) => (
-              <div key={idx} style={{ position: "relative" }}>
-                <img
-                  src={file.content || URL.createObjectURL(file.file)}
-                  alt="preview"
-                  style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 8 }}
-                />
-                <button
-                  onClick={() => handleRemovePreview(idx)}
-                  style={{
-                    position: "absolute",
-                    top: 2,
-                    right: 2,
-                    background: "rgba(0,0,0,0.6)",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "50%",
-                    width: 20,
-                    height: 20,
-                    cursor: "pointer"
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
         <AnimatePresence>
           {confirmModal && (
             <Modal
