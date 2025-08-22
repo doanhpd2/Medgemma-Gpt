@@ -191,6 +191,7 @@ function Sidebar({
       setShowToast(true);
       return;
     }
+    console.log(`chat id ${conversation_id}`)
     navigate(`/chat/${conversation_id}`);
     if (isResponsive) toggleSidebar();
   }, [conversations, navigate, isResponsive, toggleSidebar]);

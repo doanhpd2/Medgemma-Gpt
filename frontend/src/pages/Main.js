@@ -66,11 +66,11 @@ function Main({ isTouch }) {
         // Thêm conversation vào context (dùng local)
         const newConversation = {
           conversation_id,
-          alias: "Cuộc trò chuyện mới",
+          alias: message || "Cuộc trò chuyện mới",
           starred: false,
           starred_at: null,
           created_at: Date.now(),
-          isLoading: true,
+          isLoading: false,
         };
         addConversation(newConversation);
         console.log("create new conversation")

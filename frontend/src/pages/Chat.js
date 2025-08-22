@@ -23,7 +23,25 @@ function Chat({ isTouch, chatMessageRef }) {
   const { uploadedFiles, setUploadedFiles, processFiles, removeFile } = useFileUpload([]);
   const messagesEndRef = useRef(null);
 
+  const location = useLocation();
+  const initialMessage = location.state?.initialMessage;
+  const initialFiles = location.state?.initialFiles || [];
+
   const generateMessageId = () => `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  // --- State messages ---
+  const [messages, setMessages] = useState([]);
+
+  // --- Load messages khi mount và khi conversation_id thay đổi ---
+  useEffect(() => {
+    const saved = localStorage.getItem(`chat_${conversation_id}`);
+    setMessages(saved ? JSON.parse(saved) : []);
+  }, [conversation_id]);
+
+  // --- Đồng bộ messages lên localStorage ---
+  useEffect(() => {
+    localStorage.setItem(`chat_${conversation_id}`, JSON.stringify(messages));
+  }, [messages, conversation_id]);
 
   const updateAssistantMessage = useCallback((message) => {
     setMessages((prev) => [...prev, { role: "assistant", content: message, id: generateMessageId() }]);
@@ -34,18 +52,18 @@ function Chat({ isTouch, chatMessageRef }) {
   }, []);
 
   const deleteMessages = useCallback(
-    (startIndex) => setMessages((prev) => prev.slice(0, startIndex)),
-    []
+    (startIndex) => {
+      setMessages((prev) => {
+        const newMessages = prev.slice(0, startIndex);
+        if (newMessages.length === 0) {
+          localStorage.removeItem(`chat_${conversation_id}`);
+        }
+        return newMessages;
+      });
+    },
+    [conversation_id]
   );
 
-  const location = useLocation();
-
-  const initialMessage = location.state?.initialMessage;
-  const initialFiles = location.state?.initialFiles || [];
-
-  const [messages, setMessages] = useState([]);
-
-  // --- Main sendMessage logic (upload images first) ---
   const sendMessage = useCallback(
     async (message, files = uploadedFiles) => {
       if (!message.trim() && files.length === 0) {
@@ -60,7 +78,7 @@ function Chat({ isTouch, chatMessageRef }) {
       setScrollOnSend(true);
 
       try {
-        // 1️⃣ Upload images lên Node server /api/upload
+        // Upload images
         const imagePaths = [];
         for (const fileObj of files) {
           if (fileObj.file instanceof File) {
@@ -76,14 +94,11 @@ function Chat({ isTouch, chatMessageRef }) {
           }
         }
 
-        console.log("prompt:", message);
-        console.log("imagePaths:", imagePaths);
-
-        // 🔹 Tạo message user gồm text + ảnh upload
         const imageParts = files.map((fileObj) => ({
           type: "image",
           content: fileObj.content || URL.createObjectURL(fileObj.file),
         }));
+
         const userMessage = {
           role: "user",
           content: [{ type: "text", text: message }, ...imageParts],
@@ -91,7 +106,7 @@ function Chat({ isTouch, chatMessageRef }) {
         };
         setMessages((prev) => [...prev, userMessage]);
 
-        // 2️⃣ Gửi JSON { prompt, image_paths } tới Flask server
+        // Gửi prompt + image_paths tới server
         const result = await fetch(`${PROXY_BASE}/generate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -103,8 +118,6 @@ function Chat({ isTouch, chatMessageRef }) {
 
         if (!result.ok) throw new Error(`Server error: ${result.status}`);
         const data = await result.json();
-        console.log("Server response data:", data);
-
         const assistantText = data.response || data.generated_text;
         updateAssistantMessage(assistantText);
 
@@ -117,22 +130,19 @@ function Chat({ isTouch, chatMessageRef }) {
     [uploadedFiles, setUploadedFiles, updateAssistantMessage, setErrorMessage]
   );
 
-
   const handleDelete = useCallback((idx) => {
     setDeleteIndex(idx);
     setConfirmModal(true);
   }, []);
 
-  // Gửi tin nhắn đầu tiên tự động tới server
+  // Gửi tin nhắn đầu tiên nếu có
   useEffect(() => {
     if (initialMessage) {
       const sendInitialMessage = async () => {
-        // sendMessage clone nhưng dùng initialFiles, không tham chiếu uploadedFiles
         const files = initialFiles || [];
         setIsLoading(true);
 
         try {
-          // tạo user message
           const imageParts = files.map((fileObj) => ({
             type: "image",
             content: fileObj.content || URL.createObjectURL(fileObj.file),
@@ -144,16 +154,12 @@ function Chat({ isTouch, chatMessageRef }) {
           };
           setMessages((prev) => [...prev, userMessage]);
 
-          // gửi request server
-          const imagePaths = []; 
+          const imagePaths = [];
           for (const fileObj of files) {
             if (fileObj.file instanceof File) {
               const formData = new FormData();
               formData.append("image", fileObj.file);
-              const uploadRes = await fetch(`${PROXY_BASE}/upload`, {
-                method: "POST",
-                body: formData,
-              });
+              const uploadRes = await fetch(`${PROXY_BASE}/upload`, { method: "POST", body: formData });
               const { path } = await uploadRes.json();
               imagePaths.push(path);
             }
@@ -162,10 +168,7 @@ function Chat({ isTouch, chatMessageRef }) {
           const result = await fetch(`${PROXY_BASE}/generate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              prompt: initialMessage,
-              image_paths: imagePaths,
-            }),
+            body: JSON.stringify({ prompt: initialMessage, image_paths: imagePaths }),
           });
           const data = await result.json();
           const assistantText = data.response || data.generated_text;
@@ -180,9 +183,9 @@ function Chat({ isTouch, chatMessageRef }) {
 
       sendInitialMessage();
     }
-  }, []); // chỉ chạy 1 lần khi mount
+  }, [initialMessage, initialFiles, updateAssistantMessage, setErrorMessage]);
 
-
+  // Scroll tự động
   useEffect(() => {
     if (scrollOnSend) {
       requestAnimationFrame(() => {
