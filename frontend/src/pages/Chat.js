@@ -78,25 +78,9 @@ function Chat({ isTouch, chatMessageRef }) {
       setScrollOnSend(true);
 
       try {
-        // Upload images
-        const imagePaths = [];
-        for (const fileObj of files) {
-          if (fileObj.file instanceof File) {
-            const formData = new FormData();
-            formData.append("image", fileObj.file);
-            const uploadRes = await fetch(`${PROXY_BASE}/upload`, {
-              method: "POST",
-              body: formData,
-            });
-            if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
-            const { path } = await uploadRes.json();
-            imagePaths.push(path);
-          }
-        }
-
         const imageParts = files.map((fileObj) => ({
           type: "image",
-          content: fileObj.content || URL.createObjectURL(fileObj.file),
+          content: fileObj.content, // base64 đã có
         }));
 
         const userMessage = {
@@ -106,13 +90,13 @@ function Chat({ isTouch, chatMessageRef }) {
         };
         setMessages((prev) => [...prev, userMessage]);
 
-        // Gửi prompt + image_paths tới server
+        // Gửi prompt + ảnh base64 trực tiếp
         const result = await fetch(`${PROXY_BASE}/generate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prompt: message,
-            image_paths: imagePaths,
+            images: files.map((f) => f.content), // list base64
           }),
         });
 
@@ -120,7 +104,6 @@ function Chat({ isTouch, chatMessageRef }) {
         const data = await result.json();
         const assistantText = data.response || data.generated_text;
         updateAssistantMessage(assistantText);
-
       } catch (err) {
         setErrorMessage("Lỗi gửi tin nhắn: " + (err.message || "Không thể gửi yêu cầu"));
       } finally {
@@ -129,6 +112,7 @@ function Chat({ isTouch, chatMessageRef }) {
     },
     [uploadedFiles, setUploadedFiles, updateAssistantMessage, setErrorMessage]
   );
+
 
   const handleDelete = useCallback((idx) => {
     setDeleteIndex(idx);
