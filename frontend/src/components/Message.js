@@ -152,7 +152,7 @@ function Message({
       <div className="assistant-wrap">
         <div className="chat-message assistant">
           <MarkdownRenderer
-            content={content}
+            content={typeof content === "string" ? content : ""}
             isComplete={isComplete !== undefined ? isComplete : true}
             isLoading={isLoading}
             isLastMessage={isLastMessage}

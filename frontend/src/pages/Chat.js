@@ -80,7 +80,7 @@ function Chat({ isTouch, chatMessageRef }) {
       try {
         const imageParts = files.map((fileObj) => ({
           type: "image",
-          content: fileObj.content, // base64 đã có
+          content: fileObj.content,
         }));
 
         const userMessage = {
@@ -90,20 +90,61 @@ function Chat({ isTouch, chatMessageRef }) {
         };
         setMessages((prev) => [...prev, userMessage]);
 
-        // Gửi prompt + ảnh base64 trực tiếp
+        // Thêm assistant rỗng trước
+        const assistantId = generateMessageId();
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "", id: assistantId },
+        ]);
+
         const result = await fetch(`${PROXY_BASE}/generate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prompt: message,
-            images: files.map((f) => f.content), // list base64
+            images: files.map((f) => f.content),
           }),
         });
 
-        if (!result.ok) throw new Error(`Server error: ${result.status}`);
-        const data = await result.json();
-        const assistantText = data.response || data.generated_text;
-        updateAssistantMessage(assistantText);
+        if (!result.body) throw new Error("Không nhận được stream từ server");
+
+        const reader = result.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let done = false;
+        const assistantTextRef = { current: "" };
+
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          const chunk = decoder.decode(value);
+          console.log("Frontend chunk:", chunk); // Log chunk nhận từ proxy
+          chunk.split("\n").forEach((line) => {
+            if (line.startsWith("data: ")) {
+              const data = line.replace("data: ", "");
+              if (data === "[DONE]") {
+                setIsLoading(false);
+                console.log("Frontend stream done");
+              } else {
+                try {
+                  const obj = JSON.parse(data);
+                  if (obj.token) {
+                    assistantTextRef.current += obj.token;
+                    console.log("Frontend token:", obj.token); // Log từng token
+                    setMessages((prev) =>
+                      prev.map((msg) =>
+                        msg.id === assistantId
+                          ? { ...msg, content: assistantTextRef.current }
+                          : msg
+                      )
+                    );
+                  }
+                } catch (e) {
+                  console.log("Frontend parse error:", e);
+                }
+              }
+            }
+          });
+        }
       } catch (err) {
         setErrorMessage("Lỗi gửi tin nhắn: " + (err.message || "Không thể gửi yêu cầu"));
       } finally {
@@ -127,17 +168,6 @@ function Chat({ isTouch, chatMessageRef }) {
         setIsLoading(true);
 
         try {
-          const imageParts = files.map((fileObj) => ({
-            type: "image",
-            content: fileObj.content || URL.createObjectURL(fileObj.file),
-          }));
-          const userMessage = {
-            role: "user",
-            content: [{ type: "text", text: initialMessage }, ...imageParts],
-            id: `msg_${Date.now()}_init`,
-          };
-          setMessages((prev) => [...prev, userMessage]);
-
           const imagePaths = [];
           for (const fileObj of files) {
             if (fileObj.file instanceof File) {
@@ -149,15 +179,64 @@ function Chat({ isTouch, chatMessageRef }) {
             }
           }
 
+          // Thêm message user
+          const userMessage = {
+            role: "user",
+            content: [{ type: "text", text: initialMessage }, ...files.map((fileObj, idx) => ({
+              type: "image",
+              content: fileObj.content || imagePaths[idx],
+            }))],
+            id: `msg_${Date.now()}_init`,
+          };
+          setMessages((prev) => [...prev, userMessage]);
+
+          // Thêm assistant rỗng để stream
+          const assistantId = generateMessageId();
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: "", id: assistantId },
+          ]);
+
           const result = await fetch(`${PROXY_BASE}/generate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ prompt: initialMessage, image_paths: imagePaths }),
           });
-          const data = await result.json();
-          const assistantText = data.response || data.generated_text;
-          updateAssistantMessage(assistantText);
 
+          if (!result.body) throw new Error("Không nhận được stream từ server");
+
+          const reader = result.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let done = false;
+          let assistantText = "";
+
+          while (!done) {
+            const { value, done: doneReading } = await reader.read();
+            done = doneReading;
+            const chunk = decoder.decode(value);
+            chunk.split("\n").forEach((line) => {
+              if (line.startsWith("data: ")) {
+                const data = line.replace("data: ", "");
+                if (data === "[DONE]") {
+                  setIsLoading(false);
+                } else {
+                  try {
+                    const obj = JSON.parse(data);
+                    if (obj.token) {
+                      assistantText += obj.token;
+                      setMessages((prev) =>
+                        prev.map((msg) =>
+                          msg.id === assistantId
+                            ? { ...msg, content: assistantText }
+                            : msg
+                        )
+                      );
+                    }
+                  } catch {}
+                }
+              }
+            });
+          }
         } catch (err) {
           setErrorMessage("Lỗi gửi tin nhắn: " + (err.message || "Không thể gửi yêu cầu"));
         } finally {

@@ -1,6 +1,8 @@
 const express = require('express');
 const path = require('path');
 const axios = require('axios');
+const http = require('http');
+const { PassThrough } = require('stream');
 const app = express();
 
 app.use(express.json()); // parse JSON body
@@ -43,15 +45,37 @@ app.get('/api/health', async (req, res) => {
 
 // Proxy /api/generate → backend MedGemma
 app.post('/api/generate', async (req, res) => {
-  try {
-    const response = await axios.post('http://192.168.1.220:8001/generate', req.body, {
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 520000
-    });
-    res.json(response.data);
-  } catch (err) {
+  const backendUrl = 'http://192.168.1.220:8001/generate';
+  const clientReqBody = JSON.stringify(req.body);
+
+  const backendReq = http.request(
+    backendUrl,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(clientReqBody),
+      },
+    },
+    (backendRes) => {
+      res.status(backendRes.statusCode);
+      res.setHeader('Content-Type', backendRes.headers['content-type'] || 'text/event-stream');
+      backendRes.on('data', (chunk) => {
+        console.log('Node proxy chunk:', chunk.toString()); // Log chunk nhận từ Flask
+      });
+      backendRes.on('end', () => {
+        console.log('Node proxy stream done');
+      });
+      backendRes.pipe(res);
+    }
+  );
+
+  backendReq.on('error', (err) => {
     res.status(500).json({ error: err.message });
-  }
+  });
+
+  backendReq.write(clientReqBody);
+  backendReq.end();
 });
 
 // Serve React build

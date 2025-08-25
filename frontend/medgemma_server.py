@@ -8,6 +8,10 @@ import torch
 from PIL import Image
 from transformers import AutoProcessor, AutoModelForImageTextToText
 import io
+from flask import Response, stream_with_context
+import json
+from transformers import TextIteratorStreamer
+import threading
 # ----------------------
 # Logging
 # ----------------------
@@ -96,7 +100,7 @@ def generate_text():
         if not prompt:
             return jsonify({"error": "Prompt is empty"}), 400
 
-        # --- Build messages và generate ---
+        # --- Build messages ---
         messages = [
             {"role": "system", "content": [{"type": "text", "text": "Bạn là một chuyên gia hỗ trợ y tế cho bác sĩ."}]},
             {"role": "user", "content": [{"type": "text", "text": prompt}] + [{"type": "image", "image": img} for img in pil_images]}
@@ -107,17 +111,25 @@ def generate_text():
             return_dict=True, return_tensors="pt"
         ).to(model.device, dtype=torch.bfloat16 if device=="cuda" else torch.float32)
 
-        input_len = inputs["input_ids"].shape[-1]
+        # --- Dùng streamer ---
+        streamer = TextIteratorStreamer(processor, skip_prompt=True, skip_special_tokens=True)
+        generation_kwargs = dict(inputs, max_new_tokens=512, do_sample=False, streamer=streamer)
 
-        with torch.inference_mode():
-            outputs = model.generate(**inputs, max_new_tokens=1024, do_sample=False)
-            outputs = outputs[0][input_len:]
+        def generate_chunks():
+            thread = threading.Thread(target=model.generate, kwargs=generation_kwargs)
+            thread.start()
 
-        decoded = processor.decode(outputs, skip_special_tokens=True)
-        return jsonify({"response": decoded, "generated_text": decoded, "input_prompt": prompt}), 200
+            for new_text in streamer:
+                # gửi từng chunk về client
+                yield f"data: {json.dumps({'token': new_text})}\n\n"
+
+            yield "data: [DONE]\n\n"
+
+        return Response(stream_with_context(generate_chunks()), mimetype="text/event-stream")
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 
