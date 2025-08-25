@@ -1,8 +1,8 @@
 {
   "models": [
     {
-      "model_name": "medgemma-4b",
-      "model_alias": "MedGemma 4B",
+      "model_name": "medgemma-4b-it",
+      "model_alias": "MedGemma 4B It",
       "description": "Google MedGemma 4B 의료 AI 모델",
       "endpoint": "/medgemma",
       "in_billing": "0",

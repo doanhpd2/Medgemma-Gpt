@@ -5,6 +5,7 @@
   "homepage": ".",
   "proxy": "http://localhost:8000",
   "dependencies": {
+    "@huggingface/inference": "^2.8.1",
     "@testing-library/react": "^16.2.0",
     "axios": "^1.8.1",
     "cra-template": "^1.2.0",
@@ -40,7 +41,7 @@
     "web-vitals": "^4.2.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "cross-env HOST=0.0.0.0 DANGEROUSLY_DISABLE_HOST_CHECK=true PORT=7860 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -53,8 +54,7 @@
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
   },
   "browserslist": {

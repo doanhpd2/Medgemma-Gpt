@@ -27,10 +27,9 @@ function Message({
   const [isComposing, setIsComposing] = useState(false);
   const [editText, setEditText] = useState("");
   const textareaRef = useRef(null);
-  
+
   const startEdit = () => {
-    const textContent =
-      content.find((item) => item.type === "text")?.text || "";
+    const textContent = content.find((item) => item.type === "text")?.text || "";
     setEditText(textContent);
     setIsEditing(true);
   };
@@ -46,7 +45,6 @@ function Message({
 
   const saveEdit = useCallback(() => {
     if (!editText.trim()) return;
-
     const nonText = content.filter((item) => item.type !== "text");
     const updated = [{ type: "text", text: editText }, ...nonText];
     onSendEditedMessage(messageIndex, updated);
@@ -63,29 +61,22 @@ function Message({
     [isComposing, isTouch, saveEdit]
   );
 
-  const handleTextareaChange = (e) => {
-    setEditText(e.target.value);
-  };
+  const handleTextareaChange = (e) => setEditText(e.target.value);
 
   const handleCopy = async () => {
     try {
-      let textToCopy;
+      let textToCopy = "";
       if (Array.isArray(content)) {
         const textItem = content.find((item) => item.type === "text");
         textToCopy = textItem ? textItem.text : "";
       } else {
-        textToCopy = String(content)
-          .replace(/\n\n<tool_use>\n.*?\n<\/tool_use>\n/gi, '')
-          .replace(/\n<tool_result>\n.*?\n<\/tool_result>\n\n/gi, '')
-          .replace(/<\/?think>/gi, '')
-          .replace(/<\/?citations>/gi, '')
-          .replace(/\n$/, "");
+        textToCopy = String(content);
       }
       await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     } catch (err) {
-      console.error("복사에 실패했습니다.", err);
+      console.error("Copy failed", err);
     }
   };
 
@@ -101,35 +92,6 @@ function Message({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } }}
       >
-        <div className="message-file-area">
-          {content.map((item, idx) => {
-            if (item.type === "file") {
-              return (
-                <div key={idx} className="file-object">
-                  <a
-                    href={item.file_path ? `${process.env.REACT_APP_FASTAPI_URL}${item.file_path}` : undefined}
-                    className={`file-name ${item.file_path ? 'downloadable' : ''}`}
-                  >
-                    {item.name}
-                  </a>
-                </div>
-              );
-            }
-            if (item.type === "image") {
-              return (
-                <div key={idx} className="image-object">
-                  <img
-                    src={`${process.env.REACT_APP_FASTAPI_URL}${item.content}`}
-                    alt={item.name}
-                    onLoad={() => setScrollOnSend && setScrollOnSend(true)}
-                  />
-                </div>
-              );
-            }
-            return null;
-          })}
-        </div>
-
         <div className="chat-message user">
           {isEditing ? (
             <TextareaAutosize
@@ -145,42 +107,44 @@ function Message({
               style={{ resize: "none", overflow: "hidden" }}
             />
           ) : (
-            content.map((item, idx) =>
-              item.type === "text" ? <span key={idx}>{item.text}</span> : null
-            )
+            <>
+              {content.map((item, idx) => {
+                if (item.type === "image") {
+                  const src = item.content || item.url;
+                  return (
+                    <img
+                      key={idx}
+                      src={src}
+                      alt={item.name || 'image'}
+                      onLoad={() => setScrollOnSend && setScrollOnSend(true)}
+                      style={{
+                        display: "block",       // block để ảnh xuống dòng
+                        maxWidth: 200,
+                        maxHeight: 200,
+                        borderRadius: 8,
+                        margin: "0 0 5px 0"   // margin dưới ảnh
+                      }}
+                    />
+                  );
+                }
+                return null;
+              })}
+              {content.map((item, idx) =>
+                item.type === "text" ? <span key={idx}>{item.text}</span> : null
+              )}
+            </>
           )}
         </div>
 
-        {isEditing ? (
-          <div className="edit-buttons">
-            <button className="edit-button cancel" onClick={cancelEdit}>
-              취소
-            </button>
-            <button className="edit-button save" onClick={saveEdit}>
-              완료
-            </button>
-          </div>
-        ) : (
-          <div className="message-function user">
-            {copied ? (
-              <GoCheck className="function-button" />
-            ) : (
-              <GoCopy className="function-button" onClick={handleCopy} />
-            )}
-            {onSendEditedMessage && (
-              <GoPencil 
-                className="function-button"
-                onClick={startEdit} 
-              /> 
-            )}
-            {onDelete && (
-              <GoTrash
-                className="function-button"
-                onClick={() => onDelete(messageIndex)}
-              />
-            )}
-          </div>
-        )}
+        <div className="message-function user">
+          {copied ? (
+            <GoCheck className="function-button" />
+          ) : (
+            <GoCopy className="function-button" onClick={handleCopy} />
+          )}
+          {onSendEditedMessage && <GoPencil className="function-button" onClick={startEdit} />}
+          {onDelete && <GoTrash className="function-button" onClick={() => onDelete(messageIndex)} />}
+        </div>
       </motion.div>
     );
   } else if (role === "assistant") {
@@ -195,17 +159,8 @@ function Message({
           />
         </div>
         <div className="message-function">
-          {copied ? (
-            <GoCheck className="function-button" />
-          ) : (
-            <GoCopy className="function-button" onClick={handleCopy} />
-          )}
-          {onRegenerate && (
-            <GoSync
-              className="function-button"
-              onClick={() => onRegenerate(messageIndex)}
-            />
-          )}
+          {copied ? <GoCheck className="function-button" /> : <GoCopy className="function-button" onClick={handleCopy} />}
+          {onRegenerate && <GoSync className="function-button" onClick={() => onRegenerate(messageIndex)} />}
         </div>
       </div>
     );

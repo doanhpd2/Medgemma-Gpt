@@ -1,9 +1,11 @@
 // src/App.js
-import axios from "./utils/axiosConfig";
-import { useEffect, useState, useCallback, useRef, useContext, useMemo } from "react";
-import { HashRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { useState, useCallback } from "react";
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
+import Toast from "./components/Toast";
+
 import Main from "./pages/Main";
 import Chat from "./pages/Chat";
 import View from "./pages/View";
@@ -11,42 +13,24 @@ import Realtime from "./pages/Realtime";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Toast from "./components/Toast";
+import MedGemmaTest from "./pages/MedGemmaTest";
+
 import { SettingsProvider } from "./contexts/SettingsContext";
-import { ConversationsProvider, ConversationsContext } from "./contexts/ConversationsContext";
-import logo from "./logo.png";
+import { ConversationsProvider } from "./contexts/ConversationsContext";
 
 function App() {
-  const [modelsData, setModelsData] = useState(null);
-  const API_BASE = process.env.REACT_APP_FASTAPI_URL || "";
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setModelsData({ models: [] });
-    }, 5000);
-
-    const fetchModels = async () => {
-      try {
-        const modelsResponse = await axios.get(
-          `${API_BASE}/models`,
-          { withCredentials: true }
-        );
-        setModelsData(modelsResponse.data);
-      } catch (error) {
-        console.error("Failed to fetch models:", error);
-        setModelsData({ models: [] });
-      } finally {
-        clearTimeout(timeoutId);
-      }
-    };
-    fetchModels();
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [API_BASE]);
-
-  if (modelsData === null) return <div style={{ padding: 16 }}>Loading…</div>;
+  // Hardcode models cho MedGemma
+  const modelsData = {
+    models: [
+      {
+        model_name: "MedGemma-4b-it",
+        endpoint: "/generate",
+        capabilities: { stream: true },
+        in_billing: 0,
+        out_billing: 0,
+      },
+    ],
+  };
 
   return (
     <Router>
@@ -60,20 +44,16 @@ function App() {
 }
 
 function AppContent() {
-  // Force login bypass for development
-  const [isLoggedIn] = useState(true);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
   const location = useLocation();
 
-  const toggleSidebar = useCallback(() => {
-    setIsSidebarOpen((prev) => !prev);
-  }, []);
+  const toggleSidebar = useCallback(() => setIsSidebarOpen(prev => !prev), []);
 
   return (
     <div className="app">
@@ -95,6 +75,7 @@ function AppContent() {
             <Route path="/admin" element={<Admin />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/medgemma-test" element={<MedGemmaTest />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
