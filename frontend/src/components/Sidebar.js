@@ -293,7 +293,7 @@ function Sidebar({
       );
     } catch (error) {
       console.error("Failed to rename conversation.", error);
-      setToastMessage("대화 이름 편집에 실패했습니다.");
+      setToastMessage("Không thể chỉnh sửa tên cuộc trò chuyện.");
       setShowToast(true);
     }
   }, [updateConversation, currentConversationId, setAlias]);
@@ -310,20 +310,20 @@ function Sidebar({
       );
     } catch (error) {
       console.error("Failed to delete conversation.", error);
-      setToastMessage("대화 삭제에 실패했습니다.");
+      setToastMessage("Không xóa được cuộc trò chuyện.");
       setShowToast(true);
     }
   }, [deleteConversation, currentConversationId, navigate]);
 
   const handleDeleteAll = useCallback(() => {
-    setModalMessage("정말 모든 대화를 삭제하시겠습니까?");
+    setModalMessage("Bạn có chắc chắn muốn xóa tất cả các cuộc trò chuyện không?");
     setModalAction("deleteAll");
     setShowModal(true);
     setIsDropdown(false);
   }, []);
 
   const handleLogoutClick = useCallback(() => {
-    setModalMessage("정말 로그아웃 하시겠습니까?");
+    setModalMessage("Bạn có chắc chắn muốn đăng xuất không??");
     setModalAction("logout");
     setShowModal(true);
   }, []);
@@ -340,7 +340,7 @@ function Sidebar({
         );
       } catch (error) {
         console.error("Failed to delete conversations.", error);
-        setToastMessage("대화 삭제에 실패했습니다.");
+        setToastMessage("Không xóa được cuộc trò chuyện.");
         setShowToast(true);
       }
     } else if (modalAction === "logout") {
@@ -356,7 +356,7 @@ function Sidebar({
         setToastMessage(
           !Array.isArray(detail) && detail
             ? detail
-            : "알 수 없는 오류가 발생했습니다."
+            : "Đã xảy ra lỗi không xác định."
         );
         setShowToast(true);
       }
@@ -474,9 +474,9 @@ function Sidebar({
       <div className="sidebar">
         <div className="header sidebar-header">
           <div className="header-left">
-            <div className="logo">
+            {/* <div className="logo">
               <img src={logo} alt="DEVOCHAT" className="logo-image" />
-            </div>
+            </div> */}
           </div>
           <div className="header-right">
             <Tooltip content="Đóng thanh bên" position="bottom" isTouch={isTouch}>
@@ -496,7 +496,7 @@ function Sidebar({
             <LuSquarePen />
             Cuộc trò chuyện mới
           </div>
-          <div className="new-task" onClick={handleRealtimeConversation}>
+          {/* <div className="new-task" onClick={handleRealtimeConversation}>
             <LuAudioLines />
             Trò chuyện thời gian thực
           </div>
@@ -507,7 +507,7 @@ function Sidebar({
           <div className="new-task" onClick={handleImageGeneration}>
             <LuImage />
             Tạo hình ảnh
-          </div>
+          </div> */}
         </div>
 
         <div className={`conversation-container ${isLoadingChat ? "loading" : ""}`}>
@@ -582,19 +582,19 @@ function Sidebar({
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
-                <div className="user-billing">
+                {/* <div className="user-billing">
                   {userInfo?.billing?.toFixed(2)}$ đã sử dụng
-                </div>
+                </div> */}
                 <div onClick={handleDeleteAll} className="dropdown-button">
                   Xóa tất cả trò chuyện
                 </div>
-                <div
+                {/* <div
                   onClick={handleLogoutClick}
                   className="dropdown-button"
                   style={{ color: "red" }}
                 >
                   Đăng xuất
-                </div>
+                </div> */}
               </motion.div>
             )}
           </AnimatePresence>

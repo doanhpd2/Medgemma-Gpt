@@ -44,7 +44,7 @@ function SearchModal({
             <div className="search-modal-input-container">
               <input
                 type="text"
-                placeholder="검색어를 입력하세요."
+                placeholder="Vui lòng nhập từ khóa tìm kiếm của bạn."
                 value={searchQuery}
                 onChange={(e) => setChangeQuery(e.target.value)}
                 className="search-modal-input"
@@ -73,7 +73,7 @@ function SearchModal({
                 </div>
               ))}
               {filteredConversations.length === 0 && searchQuery.trim() && (
-                <div className="no-result">검색 결과가 없습니다.</div>
+                <div className="no-result">Không có kết quả tìm kiếm.</div>
               )}
             </div>
           </div>
